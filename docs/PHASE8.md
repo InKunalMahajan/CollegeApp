@@ -21,7 +21,7 @@
 ```powershell
 git status
 git fetch origin
-git switch --track origin/feat/phase8-assignments-communication
+git switch feat/phase8-assignments-communication\ngit pull --ff-only
 php artisan migrate:status
 # Back up MySQL and resolve any pending duplicate role migration first
 php artisan migrate
@@ -32,6 +32,6 @@ npm run build
 php artisan serve
 ```
 
-Routes: admin `/student-links`; teacher `/my-assignments`; student `/my-assignments`; authenticated users `/announcements`.
+Routes: admin `/student-links`; teacher `/teaching-assignments`; student `/my-assignments`; authenticated users `/announcements`.
 
 Setup: Create school/campus/class and subject; assign teacher; enroll student into class; create Student-role user and link under Student Login Linking; teacher drafts/publishes homework; student submits; teacher grades; admin publishes announcements.
