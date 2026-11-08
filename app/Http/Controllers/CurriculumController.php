@@ -7,6 +7,7 @@ use App\Models\CurriculumUnit;
 use App\Models\LessonProgress;
 use App\Models\Subject;
 use App\Models\TeacherSubjectAssignment;
+use App\Models\TeacherProfile;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,7 +55,10 @@ class CurriculumController extends Controller
     {
         $teacher = auth()->user();
         $assignments = TeacherSubjectAssignment::with(['subject', 'classSection', 'teacherProfile'])
-            ->whereHas('teacherProfile', fn ($query) => $query->where('user_id', $teacher->id))->get();
+            ->whereHas('teacherProfile', fn ($query) => $query->where('user_id', $teacher->id))
+            ->whereHas('subject',fn($q)=>$q->whereIn('school_id',TeacherProfile::where('user_id',$teacher->id)->select('school_id')))
+            ->whereHas('classSection.campus',fn($q)=>$q->whereIn('school_id',TeacherProfile::where('user_id',$teacher->id)->select('school_id')))
+            ->get();
         $subjectIds = $assignments->pluck('subject_id')->unique();
         $units = CurriculumUnit::with('lessons')
             ->whereIn('subject_id', $subjectIds)->orderBy('sequence')->get();
@@ -74,7 +78,10 @@ class CurriculumController extends Controller
         ]);
         $assignment = TeacherSubjectAssignment::with('teacherProfile')->findOrFail($data['teacher_subject_assignment_id']);
         $lesson = CurriculumLesson::with('unit')->findOrFail($data['curriculum_lesson_id']);
-        if ($assignment->teacherProfile->user_id !== auth()->id()) abort(403);
+        if ($assignment->teacherProfile->user_id !== auth()->id()
+            || (int)$assignment->subject->school_id !== (int)$assignment->teacherProfile->school_id
+            || (int)$assignment->classSection->campus->school_id !== (int)$assignment->teacherProfile->school_id
+            || (int)$assignment->teacherProfile->campus->school_id !== (int)$assignment->teacherProfile->school_id) abort(403);
         if ($assignment->subject_id !== $lesson->unit->subject_id) {
             throw ValidationException::withMessages(['curriculum_lesson_id' => 'Lesson is not part of your assigned subject.']);
         }
