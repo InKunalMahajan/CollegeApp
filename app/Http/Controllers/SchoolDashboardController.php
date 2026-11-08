@@ -20,7 +20,7 @@ class SchoolDashboardController extends Controller
         ]);
         $end = isset($data['end_date'])
             ? CarbonImmutable::createFromFormat('!Y-m-d', $data['end_date'])
-            : CarbonImmutable::today();
+            : now()->toImmutable()->startOfDay();
         $start = isset($data['start_date'])
             ? CarbonImmutable::createFromFormat('!Y-m-d', $data['start_date'])
             : $end->subDays(29);
