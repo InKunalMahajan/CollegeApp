@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicSetupController;
+use App\Http\Controllers\SchoolSecurityController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\LibraryController;
@@ -33,6 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    // Explicit school membership is checked inside the read-only controller.
+    Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->name('school-security.report');
 
     Route::middleware('role:teacher')->group(function () {
         Route::get('/teaching-assignments', [SchoolAssignmentController::class, 'teacherIndex'])->name('assignments.teacher');
