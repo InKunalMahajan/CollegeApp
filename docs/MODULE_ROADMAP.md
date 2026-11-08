@@ -1,6 +1,6 @@
-# CollegeApp — 16 core modules
+# SchoolApp — 16 core modules
 
-The CollegeApp scope includes **16 modules**. This is an implementation roadmap, **not a claim that all 16 modules work**.
+The SchoolApp scope includes **16 modules**. This is an implementation roadmap, **not a claim that all 16 modules work**.
 
 | # | Module | Main features | Delivery |
 |---|---|---|---|
