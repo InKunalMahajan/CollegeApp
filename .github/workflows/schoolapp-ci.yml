@@ -53,6 +53,8 @@ jobs:
           npm ci
           npm run build
           test -s public/build/manifest.json
+      - name: Check release asset preflight
+        run: php artisan school:release-check
       - name: Run SQLite feature and unit tests
         run: php artisan test --no-ansi
 
@@ -110,6 +112,8 @@ jobs:
           npm ci
           npm run build
           test -s public/build/manifest.json
+      - name: Check release asset preflight
+        run: php artisan school:release-check
       - name: Run MySQL feature and unit tests
         run: vendor/bin/phpunit --configuration phpunit.mysql.xml --colors=never
 
