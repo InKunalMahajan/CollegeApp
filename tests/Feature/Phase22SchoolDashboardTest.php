@@ -133,14 +133,18 @@ class Phase22SchoolDashboardTest extends TestCase
         $expected=[
             'students.total'=>1,'students.active'=>1,'students.enrolled'=>1,
             'teachers'=>1,'attendance.recorded'=>1,'attendance.rate'=>100.0,
+            'attendance.attended'=>1,
             'exams.graded'=>1,'exams.passed'=>1,'exams.average_percent'=>80.0,
             'fees.charged_paise'=>10000,'fees.paid_paise'=>3000,
-            'fees.outstanding_paise'=>7000,'library.titles'=>1,
+            'fees.outstanding_paise'=>7000,'fees.period_paid_paise'=>3000,
+            'library.titles'=>1,
             'library.copies'=>1,'library.active_loans'=>1,
         ];
         foreach($expected as $key=>$value) {
             $this->assertEquals($value,data_get($metrics,$key),"Unexpected dashboard metric: {$key}");
         }
+        $this->assertCount(1,$metrics['attendance']['daily']);
+        $this->assertSame(1,$metrics['attendance']['daily'][0]['recorded']);
     }
 
     public function test_corrupt_cross_school_enrollment_does_not_inflate_dashboard(): void
