@@ -45,7 +45,7 @@ class Phase8WorkflowsTest extends TestCase
 
     public function test_teacher_assigns_student_submits_and_teacher_grades(): void {
         $f=$this->fixtures('A');
-        $this->actingAs($f['teacher'])->post('/my-assignments',[
+        $this->actingAs($f['teacher'])->post('/teaching-assignments',[
             'teacher_subject_assignment_id'=>$f['allocation']->id,'title'=>'Practice',
             'instructions'=>'Solve the question','due_at'=>now()->addDays(3)->format('Y-m-d H:i:s'),
             'max_marks'=>20,
@@ -53,13 +53,13 @@ class Phase8WorkflowsTest extends TestCase
         $assignment=SchoolAssignment::firstOrFail();
         $this->assertSame('draft',$assignment->status);
         $this->actingAs($f['student'])->get('/my-assignments')->assertDontSee('Practice');
-        $this->actingAs($f['teacher'])->post('/my-assignments/'.$assignment->id.'/publish')
+        $this->actingAs($f['teacher'])->post('/teaching-assignments/'.$assignment->id.'/publish')
             ->assertRedirect(route('assignments.teacher'));
         $this->actingAs($f['student'])->get('/my-assignments')->assertSee('Practice');
         $this->post('/my-assignments/'.$assignment->id.'/submit',['response'=>'Answer 42'])
             ->assertRedirect(route('assignments.student'));
         $submission=AssignmentSubmission::firstOrFail();
-        $this->actingAs($f['teacher'])->post('/my-assignments/submissions/'.$submission->id.'/grade',[
+        $this->actingAs($f['teacher'])->post('/teaching-assignments/submissions/'.$submission->id.'/grade',[
             'marks'=>18,'feedback'=>'Good work',
         ])->assertRedirect(route('assignments.submissions',$assignment));
         $this->actingAs($f['student'])->get('/my-assignments')->assertSee('18 / 20');
@@ -73,8 +73,8 @@ class Phase8WorkflowsTest extends TestCase
             'title'=>'Private homework','instructions'=>'Work','due_at'=>now()->addDay(),'max_marks'=>50,'status'=>'published']);
         $this->actingAs($b['student'])->get('/my-assignments')->assertDontSee('Private homework');
         $this->post('/my-assignments/'.$assignment->id.'/submit',['response'=>'Unauthorized'])->assertNotFound();
-        $this->actingAs($b['teacher'])->get('/my-assignments/'.$assignment->id.'/submissions')->assertForbidden();
-        $this->post('/my-assignments/'.$assignment->id.'/publish')->assertForbidden();
+        $this->actingAs($b['teacher'])->get('/teaching-assignments/'.$assignment->id.'/submissions')->assertForbidden();
+        $this->post('/teaching-assignments/'.$assignment->id.'/publish')->assertForbidden();
     }
 
     public function test_announcements_are_draft_until_published_and_role_filtered(): void {
@@ -93,7 +93,7 @@ class Phase8WorkflowsTest extends TestCase
 
     public function test_student_cannot_publish_or_grade_and_teacher_cannot_link_students(): void {
         $f=$this->fixtures('E');
-        $this->actingAs($f['student'])->post('/my-assignments',[])->assertForbidden();
+        $this->actingAs($f['student'])->post('/teaching-assignments',[])->assertForbidden();
         $this->actingAs($f['teacher'])->get('/student-links')->assertForbidden();
         $this->actingAs($f['student'])->post('/announcements',[])->assertForbidden();
     }
