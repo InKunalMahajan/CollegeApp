@@ -7,7 +7,7 @@ return [
     ['key' => 'schools', 'name' => 'School Management', 'features' => 'School profile, campus settings', 'phase' => 4, 'status' => 'partial'],
     ['key' => 'users', 'name' => 'User Management', 'features' => 'Accounts, roles, permissions', 'phase' => 3, 'status' => 'partial'],
     ['key' => 'students', 'name' => 'Student Management', 'features' => 'Admissions, profiles, records', 'phase' => 1, 'status' => 'partial'],
-    ['key' => 'teachers', 'name' => 'Teacher Management', 'features' => 'Staff profiles, assignments', 'phase' => 5, 'status' => 'planned'],
+    ['key' => 'teachers', 'name' => 'Teacher Management', 'features' => 'Staff profiles, assignments', 'phase' => 5, 'status' => 'partial'],
     ['key' => 'academics', 'name' => 'Academic Management', 'features' => 'Academic years, classes, subjects', 'phase' => 4, 'status' => 'partial'],
     ['key' => 'attendance', 'name' => 'Attendance Management', 'features' => 'Student and staff attendance', 'phase' => 6, 'status' => 'planned'],
     ['key' => 'timetables', 'name' => 'Timetable Management', 'features' => 'Class schedules, teacher schedules', 'phase' => 6, 'status' => 'planned'],
