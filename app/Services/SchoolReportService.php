@@ -22,7 +22,8 @@ class SchoolReportService
             ->selectRaw('COUNT(*) as recorded_days')
             ->selectRaw("SUM(CASE WHEN a.status IN ('present', 'late') THEN 1 ELSE 0 END) as attended_days")
             ->selectRaw("SUM(CASE WHEN a.status = 'absent' THEN 1 ELSE 0 END) as absent_days")
-            ->whereBetween('a.attendance_date', [$start, $end])
+            ->whereDate('a.attendance_date', '>=', $start)
+            ->whereDate('a.attendance_date', '<=', $end)
             ->when($classId, fn ($q) => $q->where('c.id', $classId))
             ->groupBy('c.id', 'c.name')->orderBy('c.name')->get()
             ->map(fn ($row) => [
@@ -40,7 +41,8 @@ class SchoolReportService
             ->selectRaw("SUM(CASE WHEN r.status = 'graded' AND r.marks_obtained IS NOT NULL THEN 1 ELSE 0 END) as graded_count")
             ->selectRaw("SUM(CASE WHEN r.status = 'graded' AND r.marks_obtained >= x.pass_marks THEN 1 ELSE 0 END) as passed_count")
             ->selectRaw("SUM(CASE WHEN r.status = 'graded' THEN r.marks_obtained ELSE 0 END) as marks_total")
-            ->whereBetween('x.exam_date', [$start, $end])
+            ->whereDate('x.exam_date', '>=', $start)
+            ->whereDate('x.exam_date', '<=', $end)
             ->when($classId, fn ($q) => $q->where('x.class_section_id', $classId))
             ->groupBy('x.id', 'x.name', 'c.name', 'x.max_marks', 'x.pass_marks')->orderBy('x.name')->get()
             ->map(fn ($row) => [
@@ -63,7 +65,8 @@ class SchoolReportService
         $payments = DB::table('fee_payments as p')
             ->join('fee_charges as ch', 'ch.id', '=', 'p.fee_charge_id')
             ->join('class_enrollments as e', 'e.id', '=', 'ch.class_enrollment_id')
-            ->whereBetween('p.paid_on', [$start, $end])
+            ->whereDate('p.paid_on', '>=', $start)
+            ->whereDate('p.paid_on', '<=', $end)
             ->when($classId, fn ($q) => $q->where('e.class_section_id', $classId))
             ->selectRaw('COUNT(*) as payment_count, COALESCE(SUM(p.amount_paise), 0) as paid_paise')->first();
 
@@ -75,7 +78,8 @@ class SchoolReportService
 
         $loans = DB::table('library_loans as l')
             ->join('class_enrollments as e', 'e.id', '=', 'l.class_enrollment_id')
-            ->whereBetween('l.issued_on', [$start, $end])
+            ->whereDate('l.issued_on', '>=', $start)
+            ->whereDate('l.issued_on', '<=', $end)
             ->when($classId, fn ($q) => $q->where('e.class_section_id', $classId))
             ->selectRaw('COUNT(*) as issued')
             ->selectRaw('SUM(CASE WHEN l.returned_on IS NOT NULL THEN 1 ELSE 0 END) as returned')
