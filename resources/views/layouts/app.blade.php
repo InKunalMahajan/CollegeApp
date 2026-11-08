@@ -27,6 +27,7 @@
             @if(auth()->user()->role === 'admin')
                 <a href="{{ route('users.index') }}" @if(request()->routeIs('users.*')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">User accounts</a>
+                <a href="{{ route('modules.index') }}" @if(request()->routeIs('modules.*')) aria-current="page" @endif class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('modules.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">All modules</a>
             @endif
         </nav>
         <div class="border-t border-slate-100 px-6 py-5 lg:absolute lg:right-0 lg:bottom-0 lg:left-0">
