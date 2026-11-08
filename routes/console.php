@@ -44,3 +44,41 @@ Artisan::command('college:create-admin', function () {
     $this->warn('Use school:create-admin for new installations.');
     return $this->call('school:create-admin');
 })->purpose('Legacy alias for school:create-admin');
+
+
+// Read-only release inspection. Does not connect to the database or change files.
+Artisan::command('school:release-check {--production : Require production-safe settings}', function () {
+    $production = $this->option('production') || app()->environment('production');
+    $checks = [
+        'APP_KEY is configured' => filled(config('app.key')) && (string) config('app.key') !== 'base64:',
+        'Vite asset manifest exists' => is_file(public_path('build/manifest.json')),
+        'Storage directory exists' => is_dir(storage_path('framework')) && is_writable(storage_path('framework')),
+    ];
+
+    if ($production) {
+        $url = (string) config('app.url');
+        $checks += [
+            'APP_ENV is production' => app()->environment('production'),
+            'APP_DEBUG is disabled' => config('app.debug') === false,
+            'APP_URL uses HTTPS' => str_starts_with(strtolower($url), 'https://'),
+            'Legacy global routes are disabled' => config('school_security.legacy_global_routes_enabled') === false,
+            'Secure session cookies are enabled' => config('session.secure') === true,
+            'Session cookies are HTTP-only' => config('session.http_only') === true,
+            'Database does not use the root account' => config('database.default') !== 'mysql'
+                || !in_array(strtolower((string) config('database.connections.mysql.username')), ['root', ''], true),
+        ];
+    }
+
+    foreach ($checks as $name => $passed) {
+        $this->line(($passed ? 'PASS' : 'FAIL').'  '.$name);
+    }
+
+    $failed = count(array_filter($checks, static fn ($passed) => !$passed));
+    if ($failed > 0) {
+        $this->error($failed.' release checks failed. No configuration or data was changed.');
+        return 1;
+    }
+
+    $this->info('Release configuration checks passed. This is not a production security approval.');
+    return 0;
+})->purpose('Read-only SchoolApp deployment preflight without exposing credentials');
