@@ -1,4 +1,4 @@
-# CollegeApp — Login for all roles
+# SchoolApp — Login for all roles
 
 ## One login page
 All accounts sign in at `/login` with their own email and password. No public signup is available.
@@ -15,7 +15,7 @@ Role-specific school features such as teacher schedules, grading, student attend
 ## First administrator (Windows 11)
 ```powershell
 php artisan migrate
-php artisan college:create-admin
+php artisan school:create-admin
 php artisan serve
 ```
 Choose a unique email and a long password at the terminal prompts. This command refuses to overwrite an existing email.
