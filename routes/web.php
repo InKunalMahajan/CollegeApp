@@ -3,6 +3,7 @@
 use App\Http\Controllers\AcademicSetupController;
 use App\Http\Controllers\SchoolSecurityController;
 use App\Http\Controllers\SchoolPortalController;
+use App\Http\Controllers\SchoolFinanceLibraryController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\LibraryController;
@@ -39,6 +40,14 @@ Route::middleware('auth')->group(function () {
     Route::middleware('school.member:school_admin,auditor')->group(function () {
         Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->name('school-security.report');
         Route::get('/schools/{school}/portal', [SchoolPortalController::class, 'index'])->name('school-portal.index');
+    });
+
+    Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
+        Route::get('/fees', [SchoolFinanceLibraryController::class, 'fees'])->name('school-finance.fees');
+        Route::post('/fees/charges/{charge}/payments', [SchoolFinanceLibraryController::class, 'payment'])->name('school-finance.payment');
+        Route::get('/library', [SchoolFinanceLibraryController::class, 'library'])->name('school-finance.library');
+        Route::post('/library/loans', [SchoolFinanceLibraryController::class, 'issue'])->name('school-finance.issue');
+        Route::post('/library/loans/{loan}/return', [SchoolFinanceLibraryController::class, 'returnBook'])->name('school-finance.return');
     });
 
     Route::middleware('role:teacher')->group(function () {
