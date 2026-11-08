@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard') · CollegeApp</title>
+    <title>@yield('title', 'Dashboard') · SchoolApp</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
 <div class="min-h-screen lg:flex">
-    <aside class="border-b border-slate-200 bg-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:border-r lg:border-b-0">
+    <aside class="border-b border-slate-200 bg-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
         <div class="flex items-center justify-between px-5 py-5 lg:px-6">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 font-bold tracking-tight text-slate-900">
                 <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-lg text-white">C</span>
-                <span>CollegeApp <span class="block text-xs font-medium tracking-normal text-slate-500">Management system</span></span>
+                <span>SchoolApp <span class="block text-xs font-medium tracking-normal text-slate-500">Management system</span></span>
             </a>
             <span class="rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 lg:hidden">CMS</span>
         </div>
@@ -25,12 +25,17 @@
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('students.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Students</a>
             @endif
             @if(auth()->user()->role === 'admin')
+                <div class="hidden px-4 pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 lg:block">Institution setup</div>
+                @foreach (['schools' => 'Schools', 'campuses' => 'Campuses', 'academic-years' => 'Academic years', 'subjects' => 'Subjects', 'class-sections' => 'Class sections'] as $key => $label)
+                    <a href="{{ route('setup.index', $key) }}" @if(request()->routeIs('setup.*') && request()->route('module') === $key) aria-current="page" @endif
+                       class="whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition {{ request()->routeIs('setup.*') && request()->route('module') === $key ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">{{ $label }}</a>
+                @endforeach
                 <a href="{{ route('users.index') }}" @if(request()->routeIs('users.*')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('users.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">User accounts</a>
                 <a href="{{ route('modules.index') }}" @if(request()->routeIs('modules.*')) aria-current="page" @endif class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('modules.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">All modules</a>
             @endif
         </nav>
-        <div class="border-t border-slate-100 px-6 py-5 lg:absolute lg:right-0 lg:bottom-0 lg:left-0">
+        <div class="border-t border-slate-100 px-6 py-5 ">
             <p class="truncate text-sm font-semibold">{{ auth()->user()->name }}</p>
             <p class="mb-3 text-xs text-slate-500">{{ ucfirst(auth()->user()->role) }} account</p>
             <form method="POST" action="{{ route('logout') }}">
@@ -43,7 +48,7 @@
         <header class="border-b border-slate-200 bg-white">
             <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">College Management System</p>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">School Management System</p>
                     <h1 class="mt-1 text-2xl font-bold tracking-tight">@yield('heading', 'Dashboard')</h1>
                 </div>
                 <span class="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600">Academic workspace</span>

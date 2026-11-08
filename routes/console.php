@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Validator;
 
-Artisan::command('college:create-admin', function () {
+Artisan::command('school:create-admin', function () {
     $name = trim((string) $this->ask('Administrator name'));
     $email = trim((string) $this->ask('Administrator email'));
     $password = (string) $this->secret('Password (12 characters minimum)');
@@ -36,4 +36,11 @@ Artisan::command('college:create-admin', function () {
 
     $this->info('Administrator account created.');
     return 0;
-})->purpose('Create a CollegeApp administrator through a secure terminal prompt');
+})->purpose('Create a SchoolApp administrator through a secure terminal prompt');
+
+
+// Backwards-compatible command for existing users.
+Artisan::command('college:create-admin', function () {
+    $this->warn('Use school:create-admin for new installations.');
+    return $this->call('school:create-admin');
+})->purpose('Legacy alias for school:create-admin');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcademicSetupController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ModuleCatalogController;
@@ -24,6 +25,12 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:admin,staff');
 
     Route::middleware('role:admin')->group(function () {
+        Route::get('/setup/{module}', [AcademicSetupController::class, 'index'])->name('setup.index');
+        Route::get('/setup/{module}/create', [AcademicSetupController::class, 'create'])->name('setup.create');
+        Route::post('/setup/{module}', [AcademicSetupController::class, 'store'])->name('setup.store');
+        Route::get('/setup/{module}/{record}/edit', [AcademicSetupController::class, 'edit'])->name('setup.edit');
+        Route::put('/setup/{module}/{record}', [AcademicSetupController::class, 'update'])->name('setup.update');
+        Route::delete('/setup/{module}/{record}', [AcademicSetupController::class, 'destroy'])->name('setup.destroy');
         Route::get('/modules', ModuleCatalogController::class)->name('modules.index');
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
         Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
