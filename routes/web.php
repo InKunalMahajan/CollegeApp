@@ -4,6 +4,7 @@ use App\Http\Controllers\AcademicSetupController;
 use App\Http\Controllers\SchoolSecurityController;
 use App\Http\Controllers\SchoolPortalController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
+use App\Http\Controllers\SchoolAcademicController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\LibraryController;
@@ -48,6 +49,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/library', [SchoolFinanceLibraryController::class, 'library'])->name('school-finance.library');
         Route::post('/library/loans', [SchoolFinanceLibraryController::class, 'issue'])->name('school-finance.issue');
         Route::post('/library/loans/{loan}/return', [SchoolFinanceLibraryController::class, 'returnBook'])->name('school-finance.return');
+    });
+
+    Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
+        Route::get('/academics', [SchoolAcademicController::class, 'index'])->name('school-academics.index');
+        Route::post('/academics/enrollments', [SchoolAcademicController::class, 'enroll'])->name('school-academics.enroll');
+        Route::post('/academics/teacher-assignments', [SchoolAcademicController::class, 'assignTeacher'])->name('school-academics.teaching');
+        Route::post('/academics/attendance', [SchoolAcademicController::class, 'recordAttendance'])->name('school-academics.attendance');
+        Route::post('/academics/timetable', [SchoolAcademicController::class, 'storeTimetable'])->name('school-academics.timetable');
+        Route::post('/academics/exams', [SchoolAcademicController::class, 'storeExam'])->name('school-academics.exams');
+        Route::post('/academics/exams/{exam}/results', [SchoolAcademicController::class, 'recordResult'])->name('school-academics.results');
     });
 
     Route::middleware('role:teacher')->group(function () {
