@@ -116,13 +116,8 @@ class SchoolAcademicController extends Controller
         ]);
         $section = $this->section($school, (int)$data['class_section_id']);
         $student = Student::findOrFail($data['student_id']);
-        // Student has no canonical school_id. Prevent linking a student whose
-        // existing enrollments belong to a different school. This cannot
-        // establish ownership of an otherwise unlinked student.
-        if (ClassEnrollment::where('student_id', $student->id)
-            ->whereHas('classSection.campus', fn ($q) => $q->where('school_id','!=',$school->id))->exists()) {
-            abort(404);
-        }
+        // School ownership is canonical; unassigned legacy records fail closed.
+        abort_unless($student->school_id !== null && (int) $student->school_id === (int) $school->id, 404);
 
         DB::transaction(function () use ($student,$section,$school,$audit) {
             $created = ClassEnrollment::firstOrCreate([
