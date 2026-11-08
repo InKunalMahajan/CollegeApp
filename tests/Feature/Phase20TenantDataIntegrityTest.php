@@ -159,6 +159,7 @@ class Phase20TenantDataIntegrityTest extends TestCase
             'issued_on'=>'2026-10-01','due_on'=>'2026-12-01',
             'issued_by'=>$this->admin($a['school'])->id,
         ]);
+        $this->actingAs(User::where('email','admin'.$a['school']->id.'@phase20.test')->firstOrFail());
         $this->get(route('school-finance.library',$a['school']))
             ->assertOk()->assertViewHas('loans',fn($loans)=>$loans->total()===0);
         $this->post(route('school-finance.issue',$a['school']),[
