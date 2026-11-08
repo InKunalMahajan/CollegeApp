@@ -4,11 +4,11 @@
 // Never use this configuration alone to authorize access to sensitive records.
 return [
     ['key' => 'dashboard', 'name' => 'Dashboard', 'features' => 'Statistics, summaries, charts', 'phase' => 3, 'status' => 'partial'],
-    ['key' => 'schools', 'name' => 'School Management', 'features' => 'School profile, campus settings', 'phase' => 4, 'status' => 'planned'],
+    ['key' => 'schools', 'name' => 'School Management', 'features' => 'School profile, campus settings', 'phase' => 4, 'status' => 'partial'],
     ['key' => 'users', 'name' => 'User Management', 'features' => 'Accounts, roles, permissions', 'phase' => 3, 'status' => 'partial'],
     ['key' => 'students', 'name' => 'Student Management', 'features' => 'Admissions, profiles, records', 'phase' => 1, 'status' => 'partial'],
     ['key' => 'teachers', 'name' => 'Teacher Management', 'features' => 'Staff profiles, assignments', 'phase' => 5, 'status' => 'planned'],
-    ['key' => 'academics', 'name' => 'Academic Management', 'features' => 'Academic years, classes, subjects', 'phase' => 4, 'status' => 'planned'],
+    ['key' => 'academics', 'name' => 'Academic Management', 'features' => 'Academic years, classes, subjects', 'phase' => 4, 'status' => 'partial'],
     ['key' => 'attendance', 'name' => 'Attendance Management', 'features' => 'Student and staff attendance', 'phase' => 6, 'status' => 'planned'],
     ['key' => 'timetables', 'name' => 'Timetable Management', 'features' => 'Class schedules, teacher schedules', 'phase' => 6, 'status' => 'planned'],
     ['key' => 'exams', 'name' => 'Examination Management', 'features' => 'Exams, marks, grades, report cards', 'phase' => 7, 'status' => 'planned'],
