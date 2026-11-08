@@ -3,9 +3,9 @@
 @section('heading','Student Management')
 @section('content')
 <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-<div><h2 class="text-xl font-semibold">{{ $school->name }} — Students</h2>
+<div><h2 class="text-xl font-semibold" class="flex items-center gap-2"><x-ui.icon name="users" size="size-5" /> {{ $school->name }} — Students</h2>
 <p class="mt-1 text-sm text-slate-600">View student profiles belonging to this school only.</p></div>
-<a class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold" href="{{ route('school-academics.index',$school) }}">Academics & admission</a>
+<a class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold" href="{{ route('school-academics.index',$school) }}" class="inline-flex items-center gap-2"><x-ui.icon name="school"/> Academics & admission</a>
 </div>
 <form method="GET" action="{{ route('school-students.index',$school) }}" class="mb-5 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-4">
 <div class="sm:col-span-2"><label for="search" class="block text-sm font-medium">Search name or admission number</label>
@@ -15,8 +15,8 @@
 <option value="">All statuses</option>@foreach(['active'=>'Active','inactive'=>'Inactive','graduated'=>'Graduated'] as $value=>$label)
 <option value="{{ $value }}" @selected($status===$value)>{{ $label }}</option>@endforeach
 </select></div>
-<div class="flex items-end gap-2"><button class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Search</button>
-<a href="{{ route('school-students.index',$school) }}" class="rounded-lg border border-slate-200 px-3 py-2.5 text-sm">Reset</a></div>
+<div class="flex items-end gap-2"><button class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white" class="inline-flex items-center gap-2"><x-ui.icon name="search"/> Search</button>
+<a href="{{ route('school-students.index',$school) }}" class="rounded-lg border border-slate-200 px-3 py-2.5 text-sm" class="inline-flex items-center gap-2"><x-ui.icon name="refresh"/> Reset</a></div>
 </form>
 <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
 <table class="w-full text-left text-sm"><thead class="bg-slate-50 text-slate-600"><tr>
@@ -27,7 +27,7 @@
 <td class="px-4 py-3 font-medium">{{ $student->first_name }} {{ $student->last_name }}</td>
 <td class="px-4 py-3">{{ ucfirst($student->status ?? 'active') }}</td>
 <td class="px-4 py-3">{{ $student->admission_date?->format('d M Y') }}</td>
-<td class="px-4 py-3"><a class="font-semibold text-indigo-700" href="{{ route('school-students.show',[$school,$student]) }}">View</a></td>
+<td class="px-4 py-3"><a class="font-semibold text-indigo-700" href="{{ route('school-students.show',[$school,$student]) }}" class="inline-flex items-center gap-1"><x-ui.icon name="eye"/> View</a></td>
 </tr>@empty
 <tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">No students match your search.</td></tr>
 @endforelse</tbody></table></div>
