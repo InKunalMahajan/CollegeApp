@@ -12,7 +12,8 @@ class MyTeachingController extends Controller
         $profile = TeacherProfile::with([
             'school', 'campus', 'subjectAssignments.subject',
             'subjectAssignments.classSection', 'classTeacherAssignments.classSection',
-        ])->where('user_id', auth()->id())->first();
+        ])->where('user_id', auth()->id())
+            ->whereHas('campus',fn($q)=>$q->whereColumn('campuses.school_id','teacher_profiles.school_id'))->first();
 
         return view('teachers.mine', compact('profile'));
     }
