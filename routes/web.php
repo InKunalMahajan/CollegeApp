@@ -5,6 +5,9 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ModuleCatalogController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TeacherAssignmentController;
+use App\Http\Controllers\MyTeachingController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,7 +27,16 @@ Route::middleware('auth')->group(function () {
         ->except('show')
         ->middleware('role:admin,staff');
 
+    Route::get('/my-teaching', MyTeachingController::class)
+        ->middleware('role:teacher')->name('my-teaching');
+
     Route::middleware('role:admin')->group(function () {
+        Route::resource('teachers', TeacherController::class)->except(['show', 'destroy']);
+        Route::get('/teacher-assignments', [TeacherAssignmentController::class, 'index'])->name('teacher-assignments.index');
+        Route::post('/teacher-assignments/subjects', [TeacherAssignmentController::class, 'storeSubject'])->name('teacher-assignments.subject.store');
+        Route::delete('/teacher-assignments/subjects/{assignment}', [TeacherAssignmentController::class, 'destroySubject'])->name('teacher-assignments.subject.destroy');
+        Route::post('/teacher-assignments/classes', [TeacherAssignmentController::class, 'storeClass'])->name('teacher-assignments.class.store');
+        Route::delete('/teacher-assignments/classes/{assignment}', [TeacherAssignmentController::class, 'destroyClass'])->name('teacher-assignments.class.destroy');
         Route::get('/setup/{module}', [AcademicSetupController::class, 'index'])->name('setup.index');
         Route::get('/setup/{module}/create', [AcademicSetupController::class, 'create'])->name('setup.create');
         Route::post('/setup/{module}', [AcademicSetupController::class, 'store'])->name('setup.store');
