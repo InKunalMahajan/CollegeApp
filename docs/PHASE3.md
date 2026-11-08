@@ -1,4 +1,4 @@
-# Phase 3 — Professional CollegeApp dashboard
+# Phase 3 — Professional SchoolApp dashboard
 
 ## Implemented in this branch
 - Responsive Tailwind CSS v4 Blade shell: brand, accessible main navigation, top bar, user identity and sign-out.

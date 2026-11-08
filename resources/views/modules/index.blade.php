@@ -4,7 +4,7 @@
 @section('content')
 <section>
     <div class="mb-6 max-w-3xl">
-        <h2 class="text-xl font-semibold">CollegeApp module roadmap</h2>
+        <h2 class="text-xl font-semibold">SchoolApp module roadmap</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600">All 16 planned modules are listed below. A status of <strong>Partial</strong> means some functionality exists; it does not mean the module is complete. Planned modules are not interactive yet.</p>
     </div>
     <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">

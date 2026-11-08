@@ -1,4 +1,4 @@
-# CollegeApp Development Roadmap
+# SchoolApp Development Roadmap
 
 ## Stage 1 — Foundation (current PR)
 - [x] Dashboard and basic student directory code
