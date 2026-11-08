@@ -7,6 +7,7 @@ use App\Models\ClassSection;
 use App\Models\FeeCharge;
 use App\Models\FeePayment;
 use App\Models\FeeStructure;
+use App\Services\SchoolAuditTrail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,7 +69,7 @@ class FeeController extends Controller
         return to_route('fees.index')->with('success', 'Charges issued to class enrollments without duplicating existing charges.');
     }
 
-    public function recordPayment(Request $request, FeeCharge $charge): RedirectResponse
+    public function recordPayment(Request $request, FeeCharge $charge, SchoolAuditTrail $audit): RedirectResponse
     {
         $data = $request->validate([
             'amount' => ['required','string'],
@@ -77,16 +78,21 @@ class FeeController extends Controller
             'reference' => ['nullable','string','max:100', Rule::unique('fee_payments','reference')],
         ]);
         $amount = $this->paise($data['amount']);
-        DB::transaction(function () use ($charge, $data, $amount) {
+        DB::transaction(function () use ($charge, $data, $amount, $audit) {
             $locked = FeeCharge::whereKey($charge->id)->lockForUpdate()->firstOrFail();
             $paid = (int) FeePayment::where('fee_charge_id', $locked->id)->sum('amount_paise');
             if ($amount > $locked->amount_paise - $paid) {
                 throw ValidationException::withMessages(['amount' => 'Payment exceeds the outstanding balance.']);
             }
-            FeePayment::create([
+            $payment = FeePayment::create([
                 'fee_charge_id' => $locked->id, 'amount_paise' => $amount,
                 'paid_on' => $data['paid_on'], 'method' => $data['method'],
                 'reference' => $data['reference'] ?? null, 'recorded_by' => auth()->id(),
+            ]);
+            $schoolId = $locked->enrollment->classSection->campus->school_id;
+            $audit->record($schoolId, auth()->id(), 'fee.payment.recorded', 'fee_payment', $payment->id, [
+                'fee_charge_id' => $locked->id,
+                'amount_paise' => $amount,
             ]);
         });
         return to_route('fees.index')->with('success', 'Manual payment recorded.');

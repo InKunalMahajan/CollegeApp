@@ -7,6 +7,7 @@ use App\Models\LibraryBook;
 use App\Models\LibraryCopy;
 use App\Models\LibraryLoan;
 use App\Models\School;
+use App\Services\SchoolAuditTrail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,14 +50,14 @@ class LibraryController extends Controller
         return to_route('library.index')->with('success', 'Book copy registered.');
     }
 
-    public function issue(Request $request): RedirectResponse
+    public function issue(Request $request, SchoolAuditTrail $audit): RedirectResponse
     {
         $data = $request->validate([
             'library_copy_id' => ['required','integer',Rule::exists('library_copies','id')],
             'class_enrollment_id' => ['required','integer',Rule::exists('class_enrollments','id')],
             'due_on' => ['required','date','after:today'],
         ]);
-        DB::transaction(function () use ($data) {
+        DB::transaction(function () use ($data, $audit) {
             $copy = LibraryCopy::with('book')->whereKey($data['library_copy_id'])->lockForUpdate()->firstOrFail();
             $enrollment = ClassEnrollment::with('classSection.campus')->findOrFail($data['class_enrollment_id']);
             if ($copy->book->school_id !== $enrollment->classSection->campus->school_id) {
@@ -65,7 +66,7 @@ class LibraryController extends Controller
             if ($copy->status !== 'available' || LibraryLoan::where('library_copy_id', $copy->id)->whereNull('returned_on')->exists()) {
                 throw ValidationException::withMessages(['library_copy_id'=>'This copy is already on loan.']);
             }
-            LibraryLoan::create([
+            $loan = LibraryLoan::create([
                 'library_copy_id' => $copy->id,
                 'class_enrollment_id' => $enrollment->id,
                 'issued_on' => now()->toDateString(),
@@ -73,13 +74,16 @@ class LibraryController extends Controller
                 'issued_by' => auth()->id(),
             ]);
             $copy->update(['status' => 'borrowed']);
+            $audit->record($copy->book->school_id, auth()->id(), 'library.loan.issued', 'library_loan', $loan->id, [
+                'library_copy_id' => $copy->id,
+            ]);
         });
         return to_route('library.index')->with('success', 'Book issued.');
     }
 
-    public function returnBook(LibraryLoan $loan): RedirectResponse
+    public function returnBook(LibraryLoan $loan, SchoolAuditTrail $audit): RedirectResponse
     {
-        DB::transaction(function () use ($loan) {
+        DB::transaction(function () use ($loan, $audit) {
             $copy = LibraryCopy::whereKey($loan->library_copy_id)->lockForUpdate()->firstOrFail();
             $currentLoan = LibraryLoan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
             if ($currentLoan->returned_on !== null) {
@@ -87,6 +91,9 @@ class LibraryController extends Controller
             }
             $currentLoan->update(['returned_on' => now()->toDateString(), 'returned_by' => auth()->id()]);
             $copy->update(['status' => 'available']);
+            $audit->record($copy->book->school_id, auth()->id(), 'library.loan.returned', 'library_loan', $currentLoan->id, [
+                'library_copy_id' => $copy->id,
+            ]);
         });
         return to_route('library.index')->with('success', 'Book returned.');
     }
