@@ -39,6 +39,8 @@
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('my-teaching') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">My teaching</a>
             @endif
             @if(auth()->user()->role === 'admin')
+                <a href="{{ route('fees.index') }}" @if(request()->routeIs('fees.*')) aria-current="page" @endif class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('fees.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Fees</a>
+                <a href="{{ route('library.index') }}" @if(request()->routeIs('library.*')) aria-current="page" @endif class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('library.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Library</a>
                 <a href="{{ route('student-links.index') }}" class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100">Student login links</a>
                 <a href="{{ route('exams.index') }}" @if(request()->routeIs('exams.*')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('exams.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Examinations</a>

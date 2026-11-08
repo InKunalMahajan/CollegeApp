@@ -14,9 +14,9 @@ return [
     ['key' => 'exams', 'name' => 'Examination Management', 'features' => 'Exams, marks, grades, report cards', 'phase' => 7, 'status' => 'partial'],
     ['key' => 'curriculum', 'name' => 'Curriculum Management', 'features' => 'Syllabus, lessons, teaching progress', 'phase' => 7, 'status' => 'partial'],
     ['key' => 'assignments', 'name' => 'Assignment Management', 'features' => 'Homework, submissions, grading', 'phase' => 8, 'status' => 'partial'],
-    ['key' => 'fees', 'name' => 'Fee Management', 'features' => 'Fees, payments, receipts', 'phase' => 9, 'status' => 'planned'],
+    ['key' => 'fees', 'name' => 'Fee Management', 'features' => 'Fees, payments, receipts', 'phase' => 9, 'status' => 'partial'],
     ['key' => 'communication', 'name' => 'Communication', 'features' => 'Notices and role-targeted announcements', 'phase' => 8, 'status' => 'partial'],
     ['key' => 'reports', 'name' => 'Reports & Analytics', 'features' => 'Academic and administrative reports', 'phase' => 10, 'status' => 'planned'],
-    ['key' => 'library', 'name' => 'Library Management', 'features' => 'Books, borrowing, returns', 'phase' => 9, 'status' => 'planned'],
+    ['key' => 'library', 'name' => 'Library Management', 'features' => 'Books, borrowing, returns', 'phase' => 9, 'status' => 'partial'],
     ['key' => 'settings', 'name' => 'Settings', 'features' => 'School configuration and preferences', 'phase' => 4, 'status' => 'planned'],
 ];
