@@ -32,11 +32,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
 
     Route::middleware('role:teacher')->group(function () {
-        Route::get('/my-assignments', [SchoolAssignmentController::class, 'teacherIndex'])->name('assignments.teacher');
-        Route::post('/my-assignments', [SchoolAssignmentController::class, 'store'])->name('assignments.store');
-        Route::post('/my-assignments/{assignment}/publish', [SchoolAssignmentController::class, 'publish'])->name('assignments.publish');
-        Route::get('/my-assignments/{assignment}/submissions', [SchoolAssignmentController::class, 'submissions'])->name('assignments.submissions');
-        Route::post('/my-assignments/submissions/{submission}/grade', [SchoolAssignmentController::class, 'grade'])->name('assignments.grade');
+        Route::get('/teaching-assignments', [SchoolAssignmentController::class, 'teacherIndex'])->name('assignments.teacher');
+        Route::post('/teaching-assignments', [SchoolAssignmentController::class, 'store'])->name('assignments.store');
+        Route::post('/teaching-assignments/{assignment}/publish', [SchoolAssignmentController::class, 'publish'])->name('assignments.publish');
+        Route::get('/teaching-assignments/{assignment}/submissions', [SchoolAssignmentController::class, 'submissions'])->name('assignments.submissions');
+        Route::post('/teaching-assignments/submissions/{submission}/grade', [SchoolAssignmentController::class, 'grade'])->name('assignments.grade');
     });
 
     Route::middleware('role:student')->group(function () {
