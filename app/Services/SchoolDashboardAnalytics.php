@@ -36,7 +36,8 @@ class SchoolDashboardAnalytics
 
         $attendanceQuery = DB::table('student_attendances as a')
             ->whereIn('a.class_enrollment_id', $this->scope->enrollmentIds($school))
-            ->whereBetween('a.attendance_date', [$start->toDateString(), $end->toDateString()]);
+            ->whereDate('a.attendance_date', '>=', $start->toDateString())
+            ->whereDate('a.attendance_date', '<=', $end->toDateString());
         $attendance = (clone $attendanceQuery)
             ->selectRaw('COUNT(*) as recorded')
             ->selectRaw("SUM(CASE WHEN a.status IN ('present','late') THEN 1 ELSE 0 END) as attended")
@@ -64,7 +65,8 @@ class SchoolDashboardAnalytics
             ->whereColumn('en.class_section_id', 'ex.class_section_id')
             ->where('su.school_id', $school->id)
             ->whereIn('ex.class_section_id', $this->scope->sectionIds($school))
-            ->whereBetween('ex.exam_date', [$start->toDateString(), $end->toDateString()])
+            ->whereDate('ex.exam_date', '>=', $start->toDateString())
+            ->whereDate('ex.exam_date', '<=', $end->toDateString())
             ->where('er.status', 'graded')
             ->whereNotNull('er.marks_obtained')
             ->where('ex.max_marks', '>', 0)
@@ -79,7 +81,8 @@ class SchoolDashboardAnalytics
             ->whereIn('fp.fee_charge_id', $this->scope->chargeIds($school));
         $paidPaise = (int) (clone $payments)->sum('fp.amount_paise');
         $periodPaidPaise = (int) (clone $payments)
-            ->whereBetween('fp.paid_on', [$start->toDateString(), $end->toDateString()])
+            ->whereDate('fp.paid_on', '>=', $start->toDateString())
+            ->whereDate('fp.paid_on', '<=', $end->toDateString())
             ->sum('fp.amount_paise');
 
         $books = DB::table('library_books')->where('school_id', $school->id);
