@@ -44,10 +44,18 @@ class AttendanceController extends Controller
             'attendance_date' => ['required', 'date', 'before_or_equal:today'],
             'status' => ['required', Rule::in(['present', 'absent', 'late', 'excused'])],
         ]);
-        StudentAttendance::updateOrCreate(
-            ['class_enrollment_id' => $data['class_enrollment_id'], 'attendance_date' => $data['attendance_date']],
-            ['status' => $data['status']]
-        );
+        // Compare calendar dates, not cast datetime strings. SQLite and MySQL
+        // may serialize an Eloquent 'date' cast differently during lookup.
+        $attendance = StudentAttendance::query()
+            ->where('class_enrollment_id', $data['class_enrollment_id'])
+            ->whereDate('attendance_date', $data['attendance_date'])
+            ->first();
+
+        if ($attendance) {
+            $attendance->update(['status' => $data['status']]);
+        } else {
+            StudentAttendance::create($data);
+        }
         return to_route('attendance.index')->with('success', 'Student attendance saved.');
     }
 
@@ -58,10 +66,16 @@ class AttendanceController extends Controller
             'attendance_date' => ['required', 'date', 'before_or_equal:today'],
             'status' => ['required', Rule::in(['present', 'absent', 'late', 'excused'])],
         ]);
-        StaffAttendance::updateOrCreate(
-            ['teacher_profile_id' => $data['teacher_profile_id'], 'attendance_date' => $data['attendance_date']],
-            ['status' => $data['status']]
-        );
+        $attendance = StaffAttendance::query()
+            ->where('teacher_profile_id', $data['teacher_profile_id'])
+            ->whereDate('attendance_date', $data['attendance_date'])
+            ->first();
+
+        if ($attendance) {
+            $attendance->update(['status' => $data['status']]);
+        } else {
+            StaffAttendance::create($data);
+        }
         return to_route('attendance.index')->with('success', 'Staff attendance saved.');
     }
 }
