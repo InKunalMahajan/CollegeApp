@@ -3,6 +3,7 @@
 @section('heading','School Academic Management')
 @section('content')
 <h2 class="mb-2 text-xl font-semibold">{{ $school->name }} — Academics</h2>
+<a href="{{ route('school-students.index',$school) }}" class="mb-4 inline-block text-sm font-semibold text-indigo-700 inline-flex items-center gap-2"><x-ui.icon name="users"/> Browse and edit students</a>
 <p class="mb-5 text-sm text-slate-600">School-specific enrollment, attendance, teacher assignments, timetable and exams. Limited to verified school administrators.</p>
 @if($errors->any())<div role="alert" class="mb-5 rounded-lg bg-rose-50 p-4 text-sm text-rose-800"><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 @if(session('success'))<p role="status" class="mb-5 rounded-lg bg-slate-100 p-4 text-sm">{{ session('success') }}</p>@endif

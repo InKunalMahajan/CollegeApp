@@ -37,7 +37,7 @@ class Phase8WorkflowsTest extends TestCase
         $profile=TeacherProfile::create(['user_id'=>$teacher->id,'school_id'=>$school->id,'campus_id'=>$campus->id,'employee_code'=>'T'.$code]);
         $allocation=TeacherSubjectAssignment::create(['teacher_profile_id'=>$profile->id,'class_section_id'=>$section->id,'subject_id'=>$subject->id]);
         $student=$this->account('student',$code);
-        $record=Student::create(['admission_number'=>'A'.$code,'first_name'=>'Learner','last_name'=>$code,'admission_date'=>'2026-06-01']);
+        $record=Student::create(['school_id'=>$school->id,'admission_number'=>'A'.$code,'first_name'=>'Learner','last_name'=>$code,'admission_date'=>'2026-06-01']);
         StudentAccount::create(['user_id'=>$student->id,'student_id'=>$record->id]);
         $enrollment=ClassEnrollment::create(['student_id'=>$record->id,'class_section_id'=>$section->id]);
         return compact('allocation','teacher','student','enrollment');
