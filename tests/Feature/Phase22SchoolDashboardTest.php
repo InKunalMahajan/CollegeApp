@@ -207,7 +207,7 @@ class Phase22SchoolDashboardTest extends TestCase
         $response->assertOk()->assertHeader('content-type','text/csv; charset=UTF-8');
         $csv=$response->streamedContent();
         $this->assertStringContainsString("'=SUM(1,2)",$csv);
-        $this->assertStringContainsString('Students (total),1',$csv);
+        $this->assertStringContainsString('"Students (total)",1',$csv);
         $this->assertStringNotContainsString('LearnerH',$csv);
         $this->assertStringNotContainsString('ADMH',$csv);
     }
