@@ -6,6 +6,8 @@ use App\Http\Controllers\SchoolPortalController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
 use App\Http\Controllers\SchoolAcademicController;
 use App\Http\Controllers\SchoolAdmissionController;
+use App\Http\Controllers\MySchoolsController;
+use App\Http\Controllers\SchoolAdministrationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\LibraryController;
@@ -38,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
+    Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
     // Explicit school membership is checked inside the read-only controller.
     Route::middleware('school.member:school_admin,auditor')->group(function () {
         Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->name('school-security.report');
@@ -61,6 +64,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/academics/timetable', [SchoolAcademicController::class, 'storeTimetable'])->name('school-academics.timetable');
         Route::post('/academics/exams', [SchoolAcademicController::class, 'storeExam'])->name('school-academics.exams');
         Route::post('/academics/exams/{exam}/results', [SchoolAcademicController::class, 'recordResult'])->name('school-academics.results');
+    });
+
+    Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
+        Route::get('/administration', [SchoolAdministrationController::class, 'index'])->name('school-admin.index');
+        Route::post('/administration/auditors', [SchoolAdministrationController::class, 'addAuditor'])->name('school-admin.auditors.store');
+        Route::delete('/administration/auditors/{membership}', [SchoolAdministrationController::class, 'removeAuditor'])->name('school-admin.auditors.destroy');
+        Route::post('/administration/legacy-students/claim', [SchoolAdministrationController::class, 'claimLegacyStudent'])->name('school-admin.students.claim');
     });
 
     Route::middleware('role:teacher')->group(function () {

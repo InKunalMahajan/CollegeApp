@@ -20,12 +20,16 @@
         <nav class="flex gap-2 overflow-x-auto px-4 pb-4 lg:flex-col lg:overflow-visible" aria-label="Main navigation">
             <a href="{{ route('dashboard') }}" @if(request()->routeIs('dashboard')) aria-current="page" @endif
                class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Dashboard</a>
+            <a href="{{ route('my-schools.index') }}" @if(request()->routeIs('my-schools.*') || request()->routeIs('school-admin.*')) aria-current="page" @endif
+               class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('my-schools.*') || request()->routeIs('school-admin.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">My Schools</a>
+            @if(config('school_security.legacy_global_routes_enabled', false))
             <a href="{{ route('announcements.index') }}" @if(request()->routeIs('announcements.*')) aria-current="page" @endif
                class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('announcements.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Announcements</a>
+            @endif
             @if(auth()->user()->role === 'student')
                 <a href="{{ route('assignments.student') }}" class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100">My assignments</a>
             @endif
-            @if(auth()->user()->isStaff())
+            @if(auth()->user()->isStaff() && config('school_security.legacy_global_routes_enabled', false))
                 <a href="{{ route('students.index') }}" @if(request()->routeIs('students.*')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('students.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Students</a>
             @endif
@@ -38,7 +42,7 @@
                 <a href="{{ route('my-teaching') }}" @if(request()->routeIs('my-teaching')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('my-teaching') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">My teaching</a>
             @endif
-            @if(auth()->user()->role === 'admin')
+            @if(auth()->user()->role === 'admin' && config('school_security.legacy_global_routes_enabled', false))
                 <a href="{{ route('reports.index') }}" @if(request()->routeIs('reports.*')) aria-current="page" @endif class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('reports.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Reports &amp; Analytics</a>
                 <a href="{{ route('fees.index') }}" @if(request()->routeIs('fees.*')) aria-current="page" @endif class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('fees.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Fees</a>
                 <a href="{{ route('library.index') }}" @if(request()->routeIs('library.*')) aria-current="page" @endif class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('library.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Library</a>
