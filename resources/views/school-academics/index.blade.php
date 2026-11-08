@@ -6,6 +6,15 @@
 <p class="mb-5 text-sm text-slate-600">School-specific enrollment, attendance, teacher assignments, timetable and exams. Limited to verified school administrators.</p>
 @if($errors->any())<div role="alert" class="mb-5 rounded-lg bg-rose-50 p-4 text-sm text-rose-800"><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 @if(session('success'))<p role="status" class="mb-5 rounded-lg bg-slate-100 p-4 text-sm">{{ session('success') }}</p>@endif
+<section class="mb-5 rounded-xl border border-slate-200 bg-white p-5"><h3 class="mb-3 font-semibold">Admit student to this school</h3>
+<form method="POST" action="{{ route('school-admissions.store',$school) }}" class="grid gap-3 sm:grid-cols-3">@csrf
+<div><label for="admission-number" class="block text-sm">Admission number</label><input id="admission-number" name="admission_number" maxlength="40" required class="w-full rounded-lg border border-slate-300 p-2"></div>
+<div><label for="first-name" class="block text-sm">First name</label><input id="first-name" name="first_name" maxlength="255" required class="w-full rounded-lg border border-slate-300 p-2"></div>
+<div><label for="last-name" class="block text-sm">Last name</label><input id="last-name" name="last_name" maxlength="255" required class="w-full rounded-lg border border-slate-300 p-2"></div>
+<div><label for="admission-date" class="block text-sm">Admission date</label><input id="admission-date" name="admission_date" type="date" required value="{{ now()->toDateString() }}" class="w-full rounded-lg border border-slate-300 p-2"></div>
+<div><label for="admission-status" class="block text-sm">Status</label><select id="admission-status" name="status" class="w-full rounded-lg border border-slate-300 p-2"><option value="active">Active</option><option value="inactive">Inactive</option><option value="graduated">Graduated</option></select></div>
+<div class="flex items-end"><button class="rounded-lg bg-indigo-600 px-4 py-2.5 font-semibold text-white">Admit student</button></div>
+</form><p class="mt-3 text-xs text-slate-500">Admission records are linked to this school. Existing unassigned records must be reviewed before enrollment.</p></section>
 <div class="grid gap-5 xl:grid-cols-2">
 <section class="rounded-xl border border-slate-200 bg-white p-5"><h3 class="mb-3 font-semibold">Enroll admitted student</h3>
 <p class="mb-3 text-xs text-slate-500">Student ID must already exist. Cross-school enrolled students are rejected.</p>

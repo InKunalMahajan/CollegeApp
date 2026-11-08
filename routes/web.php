@@ -5,6 +5,9 @@ use App\Http\Controllers\SchoolSecurityController;
 use App\Http\Controllers\SchoolPortalController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
 use App\Http\Controllers\SchoolAcademicController;
+use App\Http\Controllers\SchoolAdmissionController;
+use App\Http\Controllers\MySchoolsController;
+use App\Http\Controllers\SchoolAdministrationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\LibraryController;
@@ -36,7 +39,8 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 Route::middleware('auth')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
-    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
+    Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
     // Explicit school membership is checked inside the read-only controller.
     Route::middleware('school.member:school_admin,auditor')->group(function () {
         Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->name('school-security.report');
@@ -53,12 +57,20 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
         Route::get('/academics', [SchoolAcademicController::class, 'index'])->name('school-academics.index');
+        Route::post('/students', [SchoolAdmissionController::class, 'store'])->name('school-admissions.store');
         Route::post('/academics/enrollments', [SchoolAcademicController::class, 'enroll'])->name('school-academics.enroll');
         Route::post('/academics/teacher-assignments', [SchoolAcademicController::class, 'assignTeacher'])->name('school-academics.teaching');
         Route::post('/academics/attendance', [SchoolAcademicController::class, 'recordAttendance'])->name('school-academics.attendance');
         Route::post('/academics/timetable', [SchoolAcademicController::class, 'storeTimetable'])->name('school-academics.timetable');
         Route::post('/academics/exams', [SchoolAcademicController::class, 'storeExam'])->name('school-academics.exams');
         Route::post('/academics/exams/{exam}/results', [SchoolAcademicController::class, 'recordResult'])->name('school-academics.results');
+    });
+
+    Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
+        Route::get('/administration', [SchoolAdministrationController::class, 'index'])->name('school-admin.index');
+        Route::post('/administration/auditors', [SchoolAdministrationController::class, 'addAuditor'])->name('school-admin.auditors.store');
+        Route::delete('/administration/auditors/{membership}', [SchoolAdministrationController::class, 'removeAuditor'])->name('school-admin.auditors.destroy');
+        Route::post('/administration/legacy-students/claim', [SchoolAdministrationController::class, 'claimLegacyStudent'])->name('school-admin.students.claim');
     });
 
     Route::middleware('role:teacher')->group(function () {
@@ -76,7 +88,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('students', StudentController::class)
         ->except('show')
-        ->middleware('role:admin,staff');
+        ->middleware(['role:admin,staff', 'legacy.global']);
 
     Route::get('/my-timetable', [TimetableController::class, 'mine'])->middleware('role:teacher')->name('timetables.mine');
 
@@ -88,7 +100,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/my-curriculum/progress', [CurriculumController::class, 'storeProgress'])->name('curriculum.progress.store');
     });
 
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware(['role:admin', 'legacy.global'])->group(function () {
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
         Route::get('/fees', [FeeController::class, 'index'])->name('fees.index');
