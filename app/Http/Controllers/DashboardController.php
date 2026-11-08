@@ -11,12 +11,15 @@ class DashboardController extends Controller
 {
     public function __invoke(): View
     {
+        $staff = auth()->user()->isStaff();
+
         return view('dashboard', [
-            'students' => Student::count(),
-            'active' => Student::where('status', 'active')->count(),
+            'canViewStudents' => $staff,
+            'students' => $staff ? Student::count() : null,
+            'active' => $staff ? Student::where('status', 'active')->count() : null,
             'courses' => Course::count(),
             'departments' => Department::count(),
-            'recent' => Student::with('course')->latest()->take(5)->get(),
+            'recent' => $staff ? Student::with('course')->latest()->take(5)->get() : collect(),
         ]);
     }
 }
