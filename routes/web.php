@@ -37,7 +37,7 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 Route::middleware('auth')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
-    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
     // Explicit school membership is checked inside the read-only controller.
     Route::middleware('school.member:school_admin,auditor')->group(function () {
         Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->name('school-security.report');
