@@ -20,11 +20,17 @@
         <nav class="flex gap-2 overflow-x-auto px-4 pb-4 lg:flex-col lg:overflow-visible" aria-label="Main navigation">
             <a href="{{ route('dashboard') }}" @if(request()->routeIs('dashboard')) aria-current="page" @endif
                class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Dashboard</a>
+            <a href="{{ route('announcements.index') }}" @if(request()->routeIs('announcements.*')) aria-current="page" @endif
+               class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('announcements.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Announcements</a>
+            @if(auth()->user()->role === 'student')
+                <a href="{{ route('assignments.student') }}" class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100">My assignments</a>
+            @endif
             @if(auth()->user()->isStaff())
                 <a href="{{ route('students.index') }}" @if(request()->routeIs('students.*')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('students.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Students</a>
             @endif
             @if(auth()->user()->role === 'teacher')
+                <a href="{{ route('assignments.teacher') }}" class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100">My assignments</a>
                 <a href="{{ route('curriculum.mine') }}" @if(request()->routeIs('curriculum.mine')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('curriculum.mine') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">My lesson progress</a>
                 <a href="{{ route('timetables.mine') }}" @if(request()->routeIs('timetables.mine')) aria-current="page" @endif
@@ -33,6 +39,7 @@
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('my-teaching') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">My teaching</a>
             @endif
             @if(auth()->user()->role === 'admin')
+                <a href="{{ route('student-links.index') }}" class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100">Student login links</a>
                 <a href="{{ route('exams.index') }}" @if(request()->routeIs('exams.*')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('exams.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Examinations</a>
                 <a href="{{ route('curriculum.index') }}" @if(request()->routeIs('curriculum.index') || request()->routeIs('curriculum.units.store') || request()->routeIs('curriculum.lessons.store')) aria-current="page" @endif

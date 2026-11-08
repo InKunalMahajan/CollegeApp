@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AcademicSetupController;
+use App\Http\Controllers\SchoolAssignmentController;
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -27,6 +29,21 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 Route::middleware('auth')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
 
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+
+    Route::middleware('role:teacher')->group(function () {
+        Route::get('/teaching-assignments', [SchoolAssignmentController::class, 'teacherIndex'])->name('assignments.teacher');
+        Route::post('/teaching-assignments', [SchoolAssignmentController::class, 'store'])->name('assignments.store');
+        Route::post('/teaching-assignments/{assignment}/publish', [SchoolAssignmentController::class, 'publish'])->name('assignments.publish');
+        Route::get('/teaching-assignments/{assignment}/submissions', [SchoolAssignmentController::class, 'submissions'])->name('assignments.submissions');
+        Route::post('/teaching-assignments/submissions/{submission}/grade', [SchoolAssignmentController::class, 'grade'])->name('assignments.grade');
+    });
+
+    Route::middleware('role:student')->group(function () {
+        Route::get('/my-assignments', [SchoolAssignmentController::class, 'studentIndex'])->name('assignments.student');
+        Route::post('/my-assignments/{assignment}/submit', [SchoolAssignmentController::class, 'submit'])->name('assignments.submit');
+    });
+
     Route::resource('students', StudentController::class)
         ->except('show')
         ->middleware('role:admin,staff');
@@ -42,6 +59,10 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:admin')->group(function () {
+        Route::get('/student-links', [SchoolAssignmentController::class, 'studentLinks'])->name('student-links.index');
+        Route::post('/student-links', [SchoolAssignmentController::class, 'linkStudent'])->name('student-links.store');
+        Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+        Route::post('/announcements/{announcement}/publish', [AnnouncementController::class, 'publish'])->name('announcements.publish');
         Route::get('/exams', [ExaminationController::class, 'index'])->name('exams.index');
         Route::post('/exams', [ExaminationController::class, 'store'])->name('exams.store');
         Route::get('/exams/{exam}/results', [ExaminationController::class, 'results'])->name('exams.results');
