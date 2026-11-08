@@ -16,7 +16,7 @@ return [
     ['key' => 'assignments', 'name' => 'Assignment Management', 'features' => 'Homework, submissions, grading', 'phase' => 8, 'status' => 'partial'],
     ['key' => 'fees', 'name' => 'Fee Management', 'features' => 'Fees, payments, receipts', 'phase' => 9, 'status' => 'partial'],
     ['key' => 'communication', 'name' => 'Communication', 'features' => 'Notices and role-targeted announcements', 'phase' => 8, 'status' => 'partial'],
-    ['key' => 'reports', 'name' => 'Reports & Analytics', 'features' => 'Academic and administrative reports', 'phase' => 10, 'status' => 'planned'],
+    ['key' => 'reports', 'name' => 'Reports & Analytics', 'features' => 'Academic and administrative reports', 'phase' => 10, 'status' => 'partial'],
     ['key' => 'library', 'name' => 'Library Management', 'features' => 'Books, borrowing, returns', 'phase' => 9, 'status' => 'partial'],
     ['key' => 'settings', 'name' => 'Settings', 'features' => 'School configuration and preferences', 'phase' => 4, 'status' => 'planned'],
 ];
