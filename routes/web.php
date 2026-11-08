@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AcademicSetupController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ModuleCatalogController;
@@ -27,10 +29,19 @@ Route::middleware('auth')->group(function () {
         ->except('show')
         ->middleware('role:admin,staff');
 
+    Route::get('/my-timetable', [TimetableController::class, 'mine'])->middleware('role:teacher')->name('timetables.mine');
+
     Route::get('/my-teaching', MyTeachingController::class)
         ->middleware('role:teacher')->name('my-teaching');
 
     Route::middleware('role:admin')->group(function () {
+        Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+        Route::post('/attendance/enroll', [AttendanceController::class, 'enroll'])->name('attendance.enroll');
+        Route::post('/attendance/student', [AttendanceController::class, 'storeStudent'])->name('attendance.student.store');
+        Route::post('/attendance/staff', [AttendanceController::class, 'storeStaff'])->name('attendance.staff.store');
+        Route::get('/timetables', [TimetableController::class, 'index'])->name('timetables.index');
+        Route::post('/timetables', [TimetableController::class, 'store'])->name('timetables.store');
+        Route::delete('/timetables/{entry}', [TimetableController::class, 'destroy'])->name('timetables.destroy');
         Route::resource('teachers', TeacherController::class)->except(['show', 'destroy']);
         Route::get('/teacher-assignments', [TeacherAssignmentController::class, 'index'])->name('teacher-assignments.index');
         Route::post('/teacher-assignments/subjects', [TeacherAssignmentController::class, 'storeSubject'])->name('teacher-assignments.subject.store');

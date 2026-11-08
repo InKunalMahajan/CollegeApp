@@ -25,10 +25,16 @@
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('students.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Students</a>
             @endif
             @if(auth()->user()->role === 'teacher')
+                <a href="{{ route('timetables.mine') }}" @if(request()->routeIs('timetables.mine')) aria-current="page" @endif
+                   class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('timetables.mine') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">My timetable</a>
                 <a href="{{ route('my-teaching') }}" @if(request()->routeIs('my-teaching')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('my-teaching') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">My teaching</a>
             @endif
             @if(auth()->user()->role === 'admin')
+                <a href="{{ route('attendance.index') }}" @if(request()->routeIs('attendance.*')) aria-current="page" @endif
+                   class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('attendance.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Attendance</a>
+                <a href="{{ route('timetables.index') }}" @if(request()->routeIs('timetables.index') || request()->routeIs('timetables.store') || request()->routeIs('timetables.destroy')) aria-current="page" @endif
+                   class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('timetables.index') || request()->routeIs('timetables.store') || request()->routeIs('timetables.destroy') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Timetables</a>
                 <a href="{{ route('teachers.index') }}" @if(request()->routeIs('teachers.*')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('teachers.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Teachers</a>
                 <a href="{{ route('teacher-assignments.index') }}" @if(request()->routeIs('teacher-assignments.*')) aria-current="page" @endif
