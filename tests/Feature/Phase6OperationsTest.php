@@ -89,7 +89,12 @@ class Phase6OperationsTest extends TestCase
             'teacher_profile_id' => $teacher->id,
             'attendance_date' => '2026-10-01', 'status' => 'present',
         ])->assertRedirect(route('attendance.index'));
+        $this->post('/attendance/staff', [
+            'teacher_profile_id' => $teacher->id,
+            'attendance_date' => '2026-10-01', 'status' => 'late',
+        ])->assertRedirect(route('attendance.index'));
         $this->assertDatabaseCount('staff_attendances', 1);
+        $this->assertDatabaseHas('staff_attendances', ['status' => 'late']);
     }
 
     public function test_timetable_rejects_overlap_and_teacher_sees_only_own_entries(): void
