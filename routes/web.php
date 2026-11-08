@@ -5,6 +5,8 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExaminationController;
+use App\Http\Controllers\CurriculumController;
 use App\Http\Controllers\ModuleCatalogController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
@@ -34,7 +36,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-teaching', MyTeachingController::class)
         ->middleware('role:teacher')->name('my-teaching');
 
+    Route::middleware('role:teacher')->group(function () {
+        Route::get('/my-curriculum', [CurriculumController::class, 'myProgress'])->name('curriculum.mine');
+        Route::post('/my-curriculum/progress', [CurriculumController::class, 'storeProgress'])->name('curriculum.progress.store');
+    });
+
     Route::middleware('role:admin')->group(function () {
+        Route::get('/exams', [ExaminationController::class, 'index'])->name('exams.index');
+        Route::post('/exams', [ExaminationController::class, 'store'])->name('exams.store');
+        Route::get('/exams/{exam}/results', [ExaminationController::class, 'results'])->name('exams.results');
+        Route::post('/exams/{exam}/results', [ExaminationController::class, 'storeResult'])->name('exams.results.store');
+        Route::get('/curriculum', [CurriculumController::class, 'index'])->name('curriculum.index');
+        Route::post('/curriculum/units', [CurriculumController::class, 'storeUnit'])->name('curriculum.units.store');
+        Route::post('/curriculum/lessons', [CurriculumController::class, 'storeLesson'])->name('curriculum.lessons.store');
         Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
         Route::post('/attendance/enroll', [AttendanceController::class, 'enroll'])->name('attendance.enroll');
         Route::post('/attendance/student', [AttendanceController::class, 'storeStudent'])->name('attendance.student.store');
