@@ -34,7 +34,7 @@ class Phase13ScopedFinanceLibraryTest extends TestCase
         $campus=Campus::create(['school_id'=>$school->id,'name'=>'Main','code'=>'MAIN']);
         $year=AcademicYear::create(['school_id'=>$school->id,'name'=>'2026-27','starts_on'=>'2026-06-01','ends_on'=>'2027-05-31']);
         $section=ClassSection::create(['campus_id'=>$campus->id,'academic_year_id'=>$year->id,'name'=>'FYJC','code'=>'FYJC']);
-        $student=Student::create(['admission_number'=>'ADM'.$code,'first_name'=>'Learner'.$code,'last_name'=>'Demo','admission_date'=>'2026-06-01']);
+        $student=Student::create(['school_id'=>$school->id,'admission_number'=>'ADM'.$code,'first_name'=>'Learner'.$code,'last_name'=>'Demo','admission_date'=>'2026-06-01']);
         $enrollment=ClassEnrollment::create(['student_id'=>$student->id,'class_section_id'=>$section->id]);
         $structure=FeeStructure::create(['class_section_id'=>$section->id,'name'=>'Term '.$code,'due_date'=>'2026-12-01','amount_paise'=>100000]);
         $charge=FeeCharge::create(['fee_structure_id'=>$structure->id,'class_enrollment_id'=>$enrollment->id,'amount_paise'=>100000]);
