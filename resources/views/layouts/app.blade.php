@@ -12,7 +12,7 @@
     <aside class="border-b border-slate-200 bg-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
         <div class="flex items-center justify-between px-5 py-5 lg:px-6">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 font-bold tracking-tight text-slate-900">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-lg text-white">C</span>
+                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-lg text-white">S</span>
                 <span>SchoolApp <span class="block text-xs font-medium tracking-normal text-slate-500">Management system</span></span>
             </a>
             <span class="rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 lg:hidden">CMS</span>
@@ -24,7 +24,15 @@
                 <a href="{{ route('students.index') }}" @if(request()->routeIs('students.*')) aria-current="page" @endif
                    class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('students.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Students</a>
             @endif
+            @if(auth()->user()->role === 'teacher')
+                <a href="{{ route('my-teaching') }}" @if(request()->routeIs('my-teaching')) aria-current="page" @endif
+                   class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('my-teaching') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">My teaching</a>
+            @endif
             @if(auth()->user()->role === 'admin')
+                <a href="{{ route('teachers.index') }}" @if(request()->routeIs('teachers.*')) aria-current="page" @endif
+                   class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('teachers.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Teachers</a>
+                <a href="{{ route('teacher-assignments.index') }}" @if(request()->routeIs('teacher-assignments.*')) aria-current="page" @endif
+                   class="whitespace-nowrap rounded-lg px-4 py-3 text-sm font-semibold transition {{ request()->routeIs('teacher-assignments.*') ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">Teacher assignments</a>
                 <div class="hidden px-4 pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400 lg:block">Institution setup</div>
                 @foreach (['schools' => 'Schools', 'campuses' => 'Campuses', 'academic-years' => 'Academic years', 'subjects' => 'Subjects', 'class-sections' => 'Class sections'] as $key => $label)
                     <a href="{{ route('setup.index', $key) }}" @if(request()->routeIs('setup.*') && request()->route('module') === $key) aria-current="page" @endif
