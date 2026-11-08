@@ -43,6 +43,16 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate --force
+      - name: Install Node for Blade/Vite views
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build Vite assets required by feature tests
+        run: |
+          npm ci
+          npm run build
+          test -s public/build/manifest.json
       - name: Run SQLite feature and unit tests
         run: php artisan test --no-ansi
 
@@ -90,6 +100,16 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate --force
+      - name: Install Node for Blade/Vite views
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build Vite assets required by feature tests
+        run: |
+          npm ci
+          npm run build
+          test -s public/build/manifest.json
       - name: Run MySQL feature and unit tests
         run: vendor/bin/phpunit --configuration phpunit.mysql.xml --colors=never
 
