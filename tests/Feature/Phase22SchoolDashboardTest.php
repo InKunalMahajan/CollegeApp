@@ -127,26 +127,20 @@ class Phase22SchoolDashboardTest extends TestCase
         $a=$this->fixture('C');$b=$this->fixture('D');
         $auditor=$this->user('staff','auditor');
         $this->member($auditor,$a['school'],'auditor');
-        $this->actingAs($auditor)->get(route('school-dashboard.index',$a['school']))
-            ->assertOk()
-            ->assertViewHas('metrics',function($metrics) {
-                return $metrics['students']['total']===1
-                    && $metrics['students']['active']===1
-                    && $metrics['students']['enrolled']===1
-                    && $metrics['teachers']===1
-                    && $metrics['attendance']['recorded']===1
-                    && $metrics['attendance']['rate']===100.0
-                    && $metrics['exams']['graded']===1
-                    && $metrics['exams']['passed']===1
-                    && $metrics['exams']['average_percent']===80.0
-                    && $metrics['fees']['charged_paise']===10000
-                    && $metrics['fees']['paid_paise']===3000
-                    && $metrics['fees']['outstanding_paise']===7000
-                    && $metrics['library']['titles']===1
-                    && $metrics['library']['copies']===1
-                    && $metrics['library']['active_loans']===1;
-            })
-            ->assertDontSee('LearnerD');
+        $response=$this->actingAs($auditor)->get(route('school-dashboard.index',$a['school']));
+        $response->assertOk()->assertDontSee('LearnerD');
+        $metrics=$response->viewData('metrics');
+        $expected=[
+            'students.total'=>1,'students.active'=>1,'students.enrolled'=>1,
+            'teachers'=>1,'attendance.recorded'=>1,'attendance.rate'=>100.0,
+            'exams.graded'=>1,'exams.passed'=>1,'exams.average_percent'=>80.0,
+            'fees.charged_paise'=>10000,'fees.paid_paise'=>3000,
+            'fees.outstanding_paise'=>7000,'library.titles'=>1,
+            'library.copies'=>1,'library.active_loans'=>1,
+        ];
+        foreach($expected as $key=>$value) {
+            $this->assertEquals($value,data_get($metrics,$key),"Unexpected dashboard metric: {$key}");
+        }
     }
 
     public function test_corrupt_cross_school_enrollment_does_not_inflate_dashboard(): void
@@ -169,13 +163,17 @@ class Phase22SchoolDashboardTest extends TestCase
         ]);
 
         $admin=$this->user('admin','E');$this->member($admin,$a['school']);
-        $this->actingAs($admin)->get(route('school-dashboard.index',$a['school']))
-            ->assertOk()->assertViewHas('metrics',fn($m)=>
-                $m['students']['enrolled']===1
-                && $m['attendance']['recorded']===1
-                && $m['exams']['graded']===1
-                && $m['fees']['charged_paise']===10000
-            );
+        $response=$this->actingAs($admin)->get(route('school-dashboard.index',$a['school']));
+        $response->assertOk();
+        $metrics=$response->viewData('metrics');
+        foreach([
+            'students.enrolled'=>1,
+            'attendance.recorded'=>1,
+            'exams.graded'=>1,
+            'fees.charged_paise'=>10000,
+        ] as $key=>$expected) {
+            $this->assertEquals($expected,data_get($metrics,$key),"Unexpected dashboard metric: {$key}");
+        }
     }
 
     public function test_date_filters_validate_range_and_do_not_change_lifetime_balance(): void
