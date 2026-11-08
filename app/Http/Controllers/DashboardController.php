@@ -11,14 +11,15 @@ class DashboardController extends Controller
 {
     public function __invoke(): View
     {
-        $staff = auth()->user()->isStaff();
+        $legacy = config('school_security.legacy_global_routes_enabled', false);
+        $staff = $legacy && auth()->user()->isStaff();
 
         return view('dashboard', [
             'canViewStudents' => $staff,
             'students' => $staff ? Student::count() : null,
             'active' => $staff ? Student::where('status', 'active')->count() : null,
-            'courses' => Course::count(),
-            'departments' => Department::count(),
+            'courses' => $legacy ? Course::count() : 0,
+            'departments' => $legacy ? Department::count() : 0,
             'recent' => $staff ? Student::with('course')->latest()->take(5)->get() : collect(),
         ]);
     }
