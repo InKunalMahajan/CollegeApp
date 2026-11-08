@@ -6,7 +6,7 @@
 <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
     <div>
         <p class="text-sm text-slate-500">Welcome back, {{ auth()->user()->name }}.</p>
-        <h2 class="mt-1 text-xl font-semibold text-slate-900">College overview</h2>
+        <h2 class="mt-1 text-xl font-semibold text-slate-900">School overview</h2>
         <p class="mt-1 text-sm text-slate-500">Statistics are calculated from your current database records.</p>
     </div>
     @if($canViewStudents)
