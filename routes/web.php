@@ -8,6 +8,7 @@ use App\Http\Controllers\SchoolAcademicController;
 use App\Http\Controllers\SchoolAdmissionController;
 use App\Http\Controllers\MySchoolsController;
 use App\Http\Controllers\SchoolAdministrationController;
+use App\Http\Controllers\SchoolStudentAccountController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\LibraryController;
@@ -68,6 +69,9 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
         Route::get('/administration', [SchoolAdministrationController::class, 'index'])->name('school-admin.index');
+        Route::get('/student-accounts', [SchoolStudentAccountController::class, 'index'])->name('school-student-accounts.index');
+        Route::post('/student-accounts', [SchoolStudentAccountController::class, 'store'])->name('school-student-accounts.store');
+        Route::delete('/student-accounts/{account}', [SchoolStudentAccountController::class, 'destroy'])->name('school-student-accounts.destroy');
         Route::post('/administration/auditors', [SchoolAdministrationController::class, 'addAuditor'])->name('school-admin.auditors.store');
         Route::delete('/administration/auditors/{membership}', [SchoolAdministrationController::class, 'removeAuditor'])->name('school-admin.auditors.destroy');
         Route::post('/administration/legacy-students/claim', [SchoolAdministrationController::class, 'claimLegacyStudent'])->name('school-admin.students.claim');
