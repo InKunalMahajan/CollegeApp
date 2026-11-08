@@ -29,8 +29,6 @@ class SchoolSecurityController extends Controller
     {
         $this->assertMember($request, $school);
 
-        $enrollments = $scope->enrollmentIds($school);
-
         $attendance = DB::table('student_attendances as a')
             ->join('class_enrollments as e', 'e.id', '=', 'a.class_enrollment_id')
             ->whereIn('e.id', $scope->enrollmentIds($school))
@@ -41,6 +39,8 @@ class SchoolSecurityController extends Controller
         $exams = DB::table('exam_results as er')
             ->join('examinations as x', 'x.id', '=', 'er.examination_id')
             ->join('class_enrollments as e','e.id','=','er.class_enrollment_id')
+            ->join('subjects as su','su.id','=','x.subject_id')
+            ->where('su.school_id',$school->id)
             ->whereColumn('x.class_section_id','e.class_section_id')
             ->whereIn('e.id', $scope->enrollmentIds($school))
             ->where('er.status', 'graded')
