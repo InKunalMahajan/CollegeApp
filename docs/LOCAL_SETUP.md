@@ -1,22 +1,22 @@
-# CollegeApp — Windows 11 setup and test fixes
+# SchoolApp — Windows 11 setup and test fixes
 
 ## Current GitHub status
 
-This branch contains the CollegeApp-specific Laravel code. It is **not yet a complete installable Laravel framework skeleton**. For a fully working copy, generate a Laravel 13 application first and integrate these files. Do not commit `.env`, `vendor/` or `node_modules/`.
+This branch contains the SchoolApp-specific Laravel code. It is **not yet a complete installable Laravel framework skeleton**. For a fully working copy, generate a Laravel 13 application first and integrate these files. Do not commit `.env`, `vendor/` or `node_modules/`.
 
 ## Install on Windows 11 (PowerShell)
 
 ```powershell
 cd C:\Users\LENOVO\Documents\GitHub
-composer create-project laravel/laravel CollegeAppLaravel "^13.0"
+composer create-project laravel/laravel SchoolAppLaravel "^13.0"
 ```
 
-When integrating into an existing `CollegeApp` repo, preserve the CollegeApp controllers, models, routes, migrations and Blade files. Copy **missing Laravel skeleton files** from `CollegeAppLaravel`, and never overwrite existing code or secrets blindly.
+When integrating into an existing `SchoolApp` repo, preserve the SchoolApp controllers, models, routes, migrations and Blade files. Copy **missing Laravel skeleton files** from `SchoolAppLaravel`, and never overwrite existing code or secrets blindly.
 
 Check:
 
 ```powershell
-cd C:\Users\LENOVO\Documents\GitHub\CollegeApp
+cd C:\Users\LENOVO\Documents\GitHub\SchoolApp
 Test-Path artisan
 Test-Path composer.json
 Test-Path package.json
@@ -33,7 +33,7 @@ Set MySQL credentials in the private `.env` file; then:
 php artisan key:generate
 php artisan migrate
 php artisan route:list
-php artisan college:create-admin
+php artisan school:create-admin
 npm run build
 php artisan serve
 ```
