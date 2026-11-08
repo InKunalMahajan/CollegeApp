@@ -76,12 +76,15 @@ class TimetableController extends Controller
 
     public function mine(): View
     {
-        $profile = TeacherProfile::where('user_id', auth()->id())->first();
+        $profile = TeacherProfile::where('user_id', auth()->id())
+            ->whereHas('campus',fn($q)=>$q->whereColumn('campuses.school_id','teacher_profiles.school_id'))->first();
 
         return view('timetables.mine', [
             'entries' => $profile
                 ? TimetableEntry::with('subject', 'classSection')
                     ->where('teacher_profile_id', $profile->id)
+                    ->whereHas('classSection.campus',fn($q)=>$q->where('school_id',$profile->school_id))
+                    ->whereHas('subject',fn($q)=>$q->where('school_id',$profile->school_id))
                     ->orderBy('day_of_week')->orderBy('starts_at')->get()
                 : collect(),
         ]);
