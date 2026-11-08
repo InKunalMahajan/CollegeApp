@@ -5,6 +5,7 @@
 <section class="mb-6 rounded-xl border border-slate-200 bg-white p-6">
 <h2 class="text-xl font-semibold">{{ $school->name }}</h2>
 <p class="mt-1 text-sm text-slate-600">Manage read-only auditor access and verify legacy student ownership. School administrator memberships require trusted provisioning outside this page.</p>
+<a href="{{ route('school-students.index',$school) }}" class="mt-3 mr-3 inline-block text-sm font-semibold text-indigo-700 inline-flex items-center gap-2"><x-ui.icon name="users"/> Manage students</a>
 <a href="{{ route('school-student-accounts.index',$school) }}" class="mt-3 mr-3 inline-block text-sm font-semibold text-indigo-700">Manage student login accounts</a>
 <a href="{{ route('my-schools.index') }}" class="mt-3 inline-block text-sm font-semibold text-indigo-700">Back to My Schools</a>
 </section>

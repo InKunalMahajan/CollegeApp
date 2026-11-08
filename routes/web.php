@@ -9,6 +9,7 @@ use App\Http\Controllers\SchoolAdmissionController;
 use App\Http\Controllers\MySchoolsController;
 use App\Http\Controllers\SchoolAdministrationController;
 use App\Http\Controllers\SchoolStudentAccountController;
+use App\Http\Controllers\SchoolStudentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\LibraryController;
@@ -59,6 +60,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
         Route::get('/academics', [SchoolAcademicController::class, 'index'])->name('school-academics.index');
         Route::post('/students', [SchoolAdmissionController::class, 'store'])->name('school-admissions.store');
+        Route::get('/students', [SchoolStudentController::class, 'index'])->name('school-students.index');
+        Route::get('/students/{student}', [SchoolStudentController::class, 'show'])->name('school-students.show');
+        Route::get('/students/{student}/edit', [SchoolStudentController::class, 'edit'])->name('school-students.edit');
+        Route::put('/students/{student}', [SchoolStudentController::class, 'update'])->name('school-students.update');
         Route::post('/academics/enrollments', [SchoolAcademicController::class, 'enroll'])->name('school-academics.enroll');
         Route::post('/academics/teacher-assignments', [SchoolAcademicController::class, 'assignTeacher'])->name('school-academics.teaching');
         Route::post('/academics/attendance', [SchoolAcademicController::class, 'recordAttendance'])->name('school-academics.attendance');
