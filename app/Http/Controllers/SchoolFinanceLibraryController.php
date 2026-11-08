@@ -10,6 +10,7 @@ use App\Models\LibraryCopy;
 use App\Models\LibraryLoan;
 use App\Models\School;
 use App\Services\SchoolAuditTrail;
+use App\Services\SchoolDataScope;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,18 +20,20 @@ use Illuminate\Validation\ValidationException;
 
 class SchoolFinanceLibraryController extends Controller
 {
-    private function sectionIds(School $school)
+    private function enrollmentIds(School $school)
     {
-        return DB::table('class_sections as cs')
-            ->join('campuses as ca', 'ca.id', '=', 'cs.campus_id')
-            ->where('ca.school_id', $school->id)->select('cs.id');
+        return app(SchoolDataScope::class)->enrollmentIds($school);
+    }
+
+    private function chargeIds(School $school)
+    {
+        return app(SchoolDataScope::class)->chargeIds($school);
     }
 
     private function scopedCharge(School $school, int $chargeId): FeeCharge
     {
         return FeeCharge::query()->whereKey($chargeId)
-            ->whereHas('structure', fn ($q) => $q->whereIn('class_section_id', $this->sectionIds($school)))
-            ->whereHas('enrollment', fn ($q) => $q->whereIn('class_section_id', $this->sectionIds($school)))
+            ->whereIn('id',$this->chargeIds($school))
             ->firstOrFail();
     }
 
@@ -57,8 +60,7 @@ class SchoolFinanceLibraryController extends Controller
     {
         $charges=FeeCharge::with('structure','enrollment.student')
             ->withSum('payments','amount_paise')
-            ->whereHas('structure', fn ($q) => $q->whereIn('class_section_id',$this->sectionIds($school)))
-            ->whereHas('enrollment', fn ($q) => $q->whereIn('class_section_id',$this->sectionIds($school)))
+            ->whereIn('id',$this->chargeIds($school))
             ->latest()->paginate(30);
 
         return view('school-finance.fees',compact('school','charges'));
@@ -102,11 +104,11 @@ class SchoolFinanceLibraryController extends Controller
             ->whereHas('book',fn ($q)=>$q->where('school_id',$school->id))
             ->orderBy('barcode')->get();
         $enrollments=ClassEnrollment::with('student')
-            ->whereIn('class_section_id',$this->sectionIds($school))
+            ->whereIn('id',$this->enrollmentIds($school))
             ->limit(200)->get();
         $loans=LibraryLoan::with('copy.book','enrollment.student')
             ->whereHas('copy.book',fn ($q)=>$q->where('school_id',$school->id))
-            ->whereHas('enrollment',fn ($q)=>$q->whereIn('class_section_id',$this->sectionIds($school)))
+            ->whereHas('enrollment',fn ($q)=>$q->whereIn('id',$this->enrollmentIds($school)))
             ->latest()->paginate(30);
         return view('school-finance.library',compact('school','books','copies','enrollments','loans'));
     }
@@ -120,11 +122,13 @@ class SchoolFinanceLibraryController extends Controller
         ]);
         $copy=$this->scopedCopy($school,(int)$data['library_copy_id']);
         $enrollment=ClassEnrollment::query()->whereKey($data['class_enrollment_id'])
-            ->whereIn('class_section_id',$this->sectionIds($school))->firstOrFail();
+            ->whereIn('id',$this->enrollmentIds($school))->firstOrFail();
 
         DB::transaction(function () use ($school,$copy,$enrollment,$data,$audit) {
             $locked=LibraryCopy::whereKey($copy->id)->lockForUpdate()->firstOrFail();
             $this->scopedCopy($school,$locked->id);
+            abort_unless(ClassEnrollment::whereKey($enrollment->id)
+                ->whereIn('id',$this->enrollmentIds($school))->exists(),404);
             if ($locked->status !== 'available' ||
                 LibraryLoan::where('library_copy_id',$locked->id)->whereNull('returned_on')->exists()) {
                 throw ValidationException::withMessages(['library_copy_id'=>'Copy is unavailable.']);
@@ -147,8 +151,7 @@ class SchoolFinanceLibraryController extends Controller
     {
         // Both copy and borrower's enrollment must belong to this school.
         $valid=LibraryLoan::whereKey($loan->id)
-            ->whereHas('copy.book',fn($q)=>$q->where('school_id',$school->id))
-            ->whereHas('enrollment',fn($q)=>$q->whereIn('class_section_id',$this->sectionIds($school)))
+            ->whereIn('id',app(SchoolDataScope::class)->loanIds($school))
             ->exists();
         abort_unless($valid,404);
 
@@ -156,6 +159,8 @@ class SchoolFinanceLibraryController extends Controller
             $copy=LibraryCopy::whereKey($loan->library_copy_id)->lockForUpdate()->firstOrFail();
             $this->scopedCopy($school,$copy->id);
             $current=LibraryLoan::whereKey($loan->id)->lockForUpdate()->firstOrFail();
+            abort_unless(LibraryLoan::whereKey($current->id)
+                ->whereIn('id',app(SchoolDataScope::class)->loanIds($school))->exists(),404);
             if ($current->returned_on) {
                 throw ValidationException::withMessages(['loan'=>'This book was already returned.']);
             }
