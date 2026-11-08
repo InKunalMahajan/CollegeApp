@@ -11,8 +11,6 @@ class SchoolPortalController extends Controller
 {
     public function index(School $school, SchoolDataScope $scope): View
     {
-        $sectionIds = $scope->sectionIds($school);
-
         // DISTINCT removes duplicate enrollments for students across sections.
         $students = DB::table('students as st')
             ->join('class_enrollments as en', 'en.student_id', '=', 'st.id')
@@ -23,7 +21,9 @@ class SchoolPortalController extends Controller
 
         $teachers = DB::table('teacher_profiles as t')
             ->join('users as u', 'u.id', '=', 't.user_id')
+            ->join('campuses as tc','tc.id','=','t.campus_id')
             ->where('t.school_id', $school->id)
+            ->where('tc.school_id', $school->id)
             ->select('t.employee_code', 'u.name', 't.designation')
             ->orderBy('u.name')->limit(100)->get();
 
