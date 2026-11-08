@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard') · CollegeApp</title>
+    <title>@yield('title', 'Dashboard') · SchoolApp</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
@@ -13,7 +13,7 @@
         <div class="flex items-center justify-between px-5 py-5 lg:px-6">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 font-bold tracking-tight text-slate-900">
                 <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-lg text-white">C</span>
-                <span>CollegeApp <span class="block text-xs font-medium tracking-normal text-slate-500">Management system</span></span>
+                <span>SchoolApp <span class="block text-xs font-medium tracking-normal text-slate-500">Management system</span></span>
             </a>
             <span class="rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 lg:hidden">CMS</span>
         </div>
@@ -48,7 +48,7 @@
         <header class="border-b border-slate-200 bg-white">
             <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-5 sm:px-8">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">College Management System</p>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">School Management System</p>
                     <h1 class="mt-1 text-2xl font-bold tracking-tight">@yield('heading', 'Dashboard')</h1>
                 </div>
                 <span class="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600">Academic workspace</span>
