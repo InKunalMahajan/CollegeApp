@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AcademicSetupController;
+use App\Http\Controllers\FeeController;
+use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\SchoolAssignmentController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AttendanceController;
@@ -59,6 +61,17 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('role:admin')->group(function () {
+        Route::get('/fees', [FeeController::class, 'index'])->name('fees.index');
+        Route::post('/fees/structures', [FeeController::class, 'storeStructure'])->name('fees.structures.store');
+        Route::post('/fees/structures/{structure}/issue', [FeeController::class, 'issue'])->name('fees.structures.issue');
+        Route::post('/fees/charges/{charge}/payments', [FeeController::class, 'recordPayment'])->name('fees.payments.store');
+        Route::get('/fees/receipts/{payment}', [FeeController::class, 'receipt'])->name('fees.receipt');
+
+        Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
+        Route::post('/library/books', [LibraryController::class, 'storeBook'])->name('library.books.store');
+        Route::post('/library/copies', [LibraryController::class, 'storeCopy'])->name('library.copies.store');
+        Route::post('/library/loans', [LibraryController::class, 'issue'])->name('library.loans.store');
+        Route::post('/library/loans/{loan}/return', [LibraryController::class, 'returnBook'])->name('library.loans.return');
         Route::get('/student-links', [SchoolAssignmentController::class, 'studentLinks'])->name('student-links.index');
         Route::post('/student-links', [SchoolAssignmentController::class, 'linkStudent'])->name('student-links.store');
         Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
