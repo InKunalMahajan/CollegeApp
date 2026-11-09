@@ -7,7 +7,7 @@
 @forelse($memberships as $membership)
 <x-ui.card>
 <h2 class="text-lg font-semibold">{{ $membership->school->name }}</h2>
-<p class="mt-1 text-xs text-slate-500">Role: <x-ui.badge tone="info">{{ str_replace('_',' ',ucwords($membership->role,'_')) }}</x-ui.badge></p>
+<p class="mt-1 text-xs text-slate-500">Role: <x-ui.badge tone="info">{{ $membership->role === 'school_admin' ? 'Organization Administrator' : str_replace('_',' ',ucwords($membership->role,'_')) }}</x-ui.badge></p>
 <div class="mt-4 flex flex-wrap gap-3">
 @if($membership->role !== 'department_member')
 <a href="{{ route('school-dashboard.index',$membership->school) }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white"><x-ui.icon name="layout-dashboard"/> Dashboard</a>
