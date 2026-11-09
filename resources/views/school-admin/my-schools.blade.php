@@ -12,7 +12,7 @@
 @if($membership->role !== 'department_member')
 <a href="{{ route('school-dashboard.index',$membership->school) }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white"><x-ui.icon name="layout-dashboard"/> Dashboard</a>
 <a href="{{ route('school-portal.index',$membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="eye"/> Overview</a>
-<a href="{{ route('school-security.report',$membership->school) }}" class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="chart-column"/> Reports</a>
+@if($membership->role !== 'organization_viewer')<a href="{{ route('school-security.report',$membership->school) }}" class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="chart-column"/> Reports</a>@endif
 @endif
 @if(in_array($membership->role, ['school_admin','department_member']))
 <a href="{{ route('school-departments.index', $membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700"><x-ui.icon name="layout-grid"/> Departments</a>
