@@ -103,6 +103,8 @@ class SchoolDepartmentController extends Controller
             'school_id' => $school->id,
         ]);
 
+        $this->audit($school, $request->user()->id, 'department.created', $department->id, ['code' => $department->code]);
+
         return redirect()->route('school-departments.show', [$school, $department])
             ->with('success', 'Department created.');
     }
@@ -117,7 +119,7 @@ class SchoolDepartmentController extends Controller
         ]);
         $user = User::where('email', $data['email'])->firstOrFail();
 
-        DB::transaction(function () use ($user, $school, $department, $data) {
+        DB::transaction(function () use ($request, $user, $school, $department, $data) {
             $schoolMembership = SchoolMembership::query()
                 ->where('school_id', $school->id)->where('user_id', $user->id)
                 ->lockForUpdate()->first();
@@ -135,11 +137,16 @@ class SchoolDepartmentController extends Controller
                 ]);
             }
 
-            SchoolDepartmentMembership::updateOrCreate([
+            $assignment = SchoolDepartmentMembership::updateOrCreate([
                 'school_department_id' => $department->id,
                 'user_id' => $user->id,
             ], [
                 'school_id' => $school->id,
+                'role' => $data['role'],
+            ]);
+            $this->audit($school, $request->user()->id, 'department.access.granted', $assignment->id, [
+                'department_id' => $department->id,
+                'user_id' => $user->id,
                 'role' => $data['role'],
             ]);
         });
@@ -155,8 +162,13 @@ class SchoolDepartmentController extends Controller
         abort_unless($membership->school_department_id === $department->id
             && $membership->school_id === $school->id, 404);
 
-        DB::transaction(function () use ($school, $membership) {
+        DB::transaction(function () use ($request, $school, $department, $membership) {
             $userId = $membership->user_id;
+            $this->audit($school, $request->user()->id, 'department.access.revoked', $membership->id, [
+                'department_id' => $department->id,
+                'user_id' => $userId,
+                'role' => $membership->role,
+            ]);
             $membership->delete();
             $remaining = SchoolDepartmentMembership::query()
                 ->where('school_id', $school->id)->where('user_id', $userId)->exists();
@@ -169,4 +181,17 @@ class SchoolDepartmentController extends Controller
         return redirect()->route('school-departments.show', [$school, $department])
             ->with('success', 'Department access revoked.');
     }
+    private function audit(School $school, int $actorId, string $action, int $subjectId, array $context): void
+    {
+        DB::table('school_audit_events')->insert([
+            'school_id' => $school->id,
+            'actor_user_id' => $actorId,
+            'action' => $action,
+            'subject_type' => 'school_department',
+            'subject_id' => $subjectId,
+            'context' => json_encode($context, JSON_THROW_ON_ERROR),
+            'created_at' => now(),
+        ]);
+    }
+
 }
