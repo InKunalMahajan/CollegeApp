@@ -10,8 +10,13 @@
         && !($campusContext instanceof \App\Models\Campus);
     $campusScopedContext = $schoolContext instanceof \App\Models\School
         && $campusContext instanceof \App\Models\Campus;
+    $tenantBranding = $schoolContext instanceof \App\Models\School
+        ? \App\Models\SaasBranding::where('school_id', $schoolContext->id)->first()
+        : null;
     $brandName = $platformContext ? 'SchoolApp Owner'
-        : ($schoolContext instanceof \App\Models\School ? $schoolContext->name : 'SchoolApp');
+        : ($schoolContext instanceof \App\Models\School
+            ? ($tenantBranding?->display_name ?? $schoolContext->name)
+            : 'SchoolApp');
     $brandCaption = $platformContext ? 'Platform administration'
         : ($campusScopedContext ? $campusContext->name.' campus'
         : ($organizationContext ? 'Organization workspace' : 'Management workspace'));
@@ -235,7 +240,7 @@
     <aside id="schoolapp-navigation" class="schoolapp-sidebar" data-sidebar aria-label="Application sidebar">
         <div class="flex h-[76px] shrink-0 items-center justify-between border-b border-slate-200/70 px-5">
             <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-offset-4" title="SchoolApp home">
-                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-200"><x-ui.icon name="school" size="size-5"/></span>
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-200" @if($tenantBranding) style="background-color: {{ $tenantBranding->primary_color }}" @endif><x-ui.icon name="school" size="size-5"/></span>
                 <span class="schoolapp-sidebar-label min-w-0"><span class="block text-base font-extrabold tracking-tight">{{ $brandName }}</span><span class="block text-[11px] font-medium tracking-wide text-slate-500">{{ $brandCaption }}</span></span>
             </a>
             <button type="button" data-nav-toggle aria-controls="schoolapp-navigation" aria-expanded="false" aria-label="Close navigation" class="schoolapp-mobile-close inline-flex size-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"><x-ui.icon name="x" size="size-5"/></button>
