@@ -8,9 +8,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SchoolEmployee extends Model
 {
+    public const STATUSES = ['active', 'on_leave', 'inactive', 'separated'];
+
+    public const TYPES = ['full_time', 'part_time', 'contract', 'intern'];
+
+    protected function casts(): array
+    {
+        return ['joined_on' => 'date'];
+    }
+
     protected $fillable = [
         'school_id', 'employee_number', 'display_name', 'job_title',
         'department_label', 'location', 'school_department_id', 'manager_id',
+        'employment_status', 'employment_type', 'joined_on', 'work_email',
     ];
 
     public function school(): BelongsTo
