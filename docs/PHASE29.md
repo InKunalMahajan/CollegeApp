@@ -15,7 +15,7 @@ Null manager/department IDs remain valid for unassigned employees. An employee c
 
 ### MySQL 8.4+
 
-The additive migration creates an employee `(school_id, id)` unique key, two composite foreign keys and a self-manager CHECK constraint. The original single-column foreign keys are **retained**. Both referenced school/ID pairs are indexed uniquely. MySQL enforces these rules for inserts and updates, including attempts to move a referenced manager or department to another school.
+The additive migration creates an employee `(school_id, id)` unique key, two composite foreign keys and MySQL triggers preventing direct self-management. The original single-column foreign keys are **retained**. Both referenced school/ID pairs are indexed uniquely. MySQL enforces these rules for inserts and updates, including attempts to move a referenced manager or department to another school. MySQL disallows referencing an AUTO_INCREMENT column in the relevant CHECK expression, so this patch uses BEFORE INSERT and BEFORE UPDATE triggers for self-management.
 
 ### SQLite
 
@@ -88,6 +88,49 @@ A control test confirms normal valid relationships still persist.
 
 ## Rollback
 
-The `down()` migration drops only the **new** composite keys/CHECK (MySQL) or three triggers (SQLite). It leaves the employee records and the old single-column foreign keys intact. Rollback weakens school isolation and is intended only for controlled review environments. For live databases, prefer a reviewed forward fix and a tested restoration plan.
+The `down()` migration drops only the **new** composite keys and self-management triggers (MySQL) or three triggers (SQLite). It leaves the employee records and the old single-column foreign keys intact. Rollback weakens school isolation and is intended only for controlled review environments. For live databases, prefer a reviewed forward fix and a tested restoration plan.
 
 **Not a production deployment:** No user database was accessed or modified when creating this PR. Real school data remains blocked pending full security review, staging rollout, backup restoration testing and approval.
+
+## Recovery for the MySQL 1901 / duplicate-index failure
+
+If the first migration failed with **1901** because `AUTO_INCREMENT` was referenced in a CHECK, and the second attempt failed with **1061 duplicate key school_employee_school_id_unique**, **do not drop the index or run `migrate:fresh`**. MySQL auto-commits DDL, so the first attempt may have already created the two composite foreign keys.
+
+Pull the **Phase 29 hotfix** branch `fix/phase29-mysql-partial-migration`. Its migration is resumable: it checks for existing named indexes, foreign keys and triggers before creating missing ones. It replaces the incompatible CHECK with self-manager triggers. It also uses `CREATE TRIGGER IF NOT EXISTS` for SQLite so partial trigger creation can be resumed.
+
+Inspect the database using read-only queries first:
+
+```sql
+SELECT INDEX_NAME, COLUMN_NAME, SEQ_IN_INDEX
+FROM information_schema.STATISTICS
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'school_employees'
+  AND INDEX_NAME = 'school_employee_school_id_unique'
+ORDER BY SEQ_IN_INDEX;
+
+SELECT CONSTRAINT_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+FROM information_schema.KEY_COLUMN_USAGE
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'school_employees'
+  AND CONSTRAINT_NAME IN ('school_employee_manager_school_fk', 'school_employee_department_school_fk')
+ORDER BY CONSTRAINT_NAME, ORDINAL_POSITION;
+
+SELECT TRIGGER_NAME FROM information_schema.TRIGGERS
+WHERE TRIGGER_SCHEMA = DATABASE()
+  AND TRIGGER_NAME LIKE 'school_employee_self_manager_%';
+```
+
+Back up the development database and apply the hotfix:
+
+```powershell
+git status
+git fetch origin
+git switch --track origin/fix/phase29-mysql-partial-migration
+php artisan optimize:clear
+php artisan migrate:status
+php artisan migrate
+php artisan test --filter=Phase29EmployeeIntegrityTest
+php artisan test
+```
+
+A migration that already completed fully will not run again. On the described partial failure, Laravel's migration record was not written, so the repaired migration finishes the missing DDL and records completion.
+
+**Never apply an unreviewed or partly applied schema migration to a production database.**
