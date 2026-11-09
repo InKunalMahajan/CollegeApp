@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('saas_platform_appearances', function (Blueprint $table) {
             $table->id();
+            $table->string('setting_key', 16)->unique()->default('default');
             $table->string('primary_color', 7)->default('#4F46E5');
             $table->string('font_family', 24)->default('system');
             $table->unsignedTinyInteger('font_size')->default(16);
