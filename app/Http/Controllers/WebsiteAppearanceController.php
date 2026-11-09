@@ -29,7 +29,7 @@ class WebsiteAppearanceController extends Controller
             if ($appearance) {
                 $appearance->update($data);
             } else {
-                $appearance = SaasPlatformAppearance::create($data);
+                $appearance = SaasPlatformAppearance::create(['setting_key' => 'default', ...$data]);
             }
 
             $audit->record(null, $request->user()->id, 'website.appearance.updated',
