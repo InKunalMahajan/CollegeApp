@@ -226,10 +226,10 @@
     .schoolapp-shell .bg-indigo-600 { background-color: var(--app-primary, #4f46e5); }
     .schoolapp-shell .text-indigo-700 { color: var(--app-primary, #4f46e5); }
     .schoolapp-shell .border-indigo-200 { border-color: color-mix(in srgb, var(--app-primary, #4f46e5) 32%, white); }
-    .schoolapp-shell .hover\\:bg-indigo-700:hover {
+    .schoolapp-shell .hover\:bg-indigo-700:hover {
         background-color: color-mix(in srgb, var(--app-primary, #4f46e5) 85%, black);
     }
-    .schoolapp-shell .hover\\:text-indigo-700:hover {
+    .schoolapp-shell .hover\:text-indigo-700:hover {
         color: var(--app-primary, #4f46e5);
     }
 }
