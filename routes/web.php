@@ -59,6 +59,21 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
     Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
+    Route::prefix('website-owner')->middleware('website.owner')->group(function () {
+        Route::get('/users', [WebsiteOwnerUserController::class, 'index'])->name('website-owner.users.index');
+        Route::post('/users', [WebsiteOwnerUserController::class, 'store'])->name('website-owner.users.store');
+        Route::put('/users/{user}', [WebsiteOwnerUserController::class, 'update'])->name('website-owner.users.update');
+        Route::delete('/users/{user}', [WebsiteOwnerUserController::class, 'destroy'])->name('website-owner.users.destroy');
+        Route::post('/users/{user}/restore', [WebsiteOwnerUserController::class, 'restore'])->name('website-owner.users.restore');
+        Route::post('/organization-admins', [WebsiteOwnerUserController::class, 'grant'])->name('website-owner.admins.grant');
+        Route::delete('/organization-admins/{membership}', [WebsiteOwnerUserController::class, 'revoke'])->name('website-owner.admins.revoke');
+    });
+    Route::prefix('schools/{school}/user-access')->middleware('school.can:school.users.manage')->group(function () {
+        Route::get('/', [OrganizationUserController::class, 'index'])->name('organization-users.index');
+        Route::post('/', [OrganizationUserController::class, 'store'])->name('organization-users.store');
+        Route::put('/{membership}', [OrganizationUserController::class, 'update'])->name('organization-users.update');
+        Route::delete('/{membership}', [OrganizationUserController::class, 'destroy'])->name('organization-users.destroy');
+    });
     // School is the parent organization (e.g. TEACH). Only its explicitly
     // authorized organization administrator can grant campus administration.
     Route::prefix('schools/{school}/campuses')
