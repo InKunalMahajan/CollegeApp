@@ -177,7 +177,7 @@ class Phase31EmployeeManagementTest extends TestCase
     public function test_filtering_and_legacy_employees_default_to_active(): void
     {
         $school = $this->school('FILTER');
-        $admin = $this->member($school, 'school_admin', 'FilterAdmin');
+        $auditor = $this->member($school, 'auditor', 'FilterAuditor');
         SchoolEmployee::create([
             'school_id' => $school->id,
             'employee_number' => 'OLD31',
@@ -189,7 +189,7 @@ class Phase31EmployeeManagementTest extends TestCase
             'employment_status' => 'separated',
         ]);
 
-        $this->actingAs($admin)->get(route('school-employees.index', [
+        $this->actingAs($auditor)->get(route('school-employees.index', [
             $school, 'employment_status' => 'active',
         ]))->assertOk()->assertSee('Existing Employee')
             ->assertDontSee('Employee E31K');
