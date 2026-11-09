@@ -20,6 +20,7 @@ class CampusAccess
         'campus.attendance.manage',
         'campus.exams.view',
         'campus.exams.manage',
+        'campus.finance.view',
         'campus.employees.view',
         'campus.employees.manage',
         'campus.students.view',

@@ -7,6 +7,7 @@
 <p class="mb-3"><a href="{{ route('campus.teaching.index', [$school, $campus]) }}">Manage teaching assignments →</a></p>
 <p class="mb-3"><a href="{{ route('campus.attendance.index', [$school, $campus]) }}">Record campus attendance →</a></p>
 <p class="mb-3"><a href="{{ route('campus.exams.index', [$school, $campus]) }}">Manage campus exams →</a></p>
+<p class="mb-3"><a href="{{ route('campus.finance-library.index', [$school, $campus]) }}">View campus fee and library records →</a></p>
 <div class="mb-5">
     <a class="text-sm font-semibold text-indigo-700 hover:underline" href="{{ route('campus-workspace.index', [$school, $campus]) }}">← Back to campus workspace</a>
 </div>
