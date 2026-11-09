@@ -23,6 +23,14 @@ class Phase43UserRoleCrudTest extends TestCase
         ]);
     }
 
+    public function test_staff_account_with_explicit_owner_grant_can_use_users_page_without_legacy_global_access(): void
+    {
+        $owner = $this->account('staff-owner43@example.test', 'staff');
+        WebsiteOwner::create(['user_id' => $owner->id]);
+        $this->actingAs($owner)->get(route('users.index'))->assertOk();
+        $this->get(route('users.create'))->assertOk();
+    }
+
     public function test_website_owner_can_change_basic_user_role_on_users_screen(): void
     {
         $owner = $this->account('owner43@example.test', 'admin');
