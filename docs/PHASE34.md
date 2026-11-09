@@ -33,7 +33,7 @@ A foreign campus that does not belong to the route's school returns 404. A legit
   - On MySQL, unique `(school_id, id)` for campuses and composite foreign keys `(school_id, campus_id)` on employees/students.
   - On SQLite, additive columns and ownership triggers for employees/students/campuses, retaining all existing Phase 29 employee triggers without table rebuilding.
 - Service `App\Services\CampusAccess` and `campus.can` middleware enforce known abilities and deny unknown permissions.
-- Organization admin manages campuses at `/schools/{school}/campuses`, with existing school membership authorization.
+- Organization admin manages campuses at `/schools/{school}/campuses`, with existing school membership authorization. Organization admins can create, view, update names/codes/cities, and delete **only unreferenced** campuses. A campus that has members, employees (including archived), students, class sections, or teacher profiles cannot be deleted.
 - Campus admin uses `/schools/{school}/campuses/{campus}/workspace` and sees only records with both `school_id = school.id` and `campus_id = campus.id`.
 - Campus employee CRUD uses existing unique number/email validation, restricts fields to campus-safe profile values, and uses reversible archive/restore with reporting-tree safety checks.
 - Campus student records support admission, viewing, updating and **deactivation instead of destructive deletion**; grades, attendance and audit history remain intact.
@@ -55,7 +55,7 @@ The new employee/student `campus_id` columns are **database protected** against 
 1. Create the TEACH school if not already present, and securely provision its existing `school_admin` membership via the established trusted administrator process.
 2. Sign in as organization admin, open **My Schools → Manage campuses**.
 3. Create **TEACH Mumbai** (`MUMBAI`), **TEACH Pune** (`PUNE`), and **TEACH Delhi** (`DELHI`). Only create campuses that do not already exist.
-4. Use an existing user email to assign Mumbai admin under TEACH Mumbai. The user must not already be campus_admin for another TEACH campus.
+4. Use an existing user email to assign Mumbai admin under TEACH Mumbai. The organization administrator can edit campus details later; a campus administrator cannot rename or delete the campus. The user must not already be campus_admin for another TEACH campus.
 5. Verify unassigned employee/student records before clicking an explicit campus assignment action. The form displays only the first 100 unassigned records in each category; use a future bulk assignment flow for larger datasets.
 6. Sign in as the Mumbai admin. **My Schools → My campuses → TEACH Mumbai** should show only Mumbai records; navigating to Pune or TEACH settings must return 403.
 7. Test the same isolation for Pune and Delhi.
