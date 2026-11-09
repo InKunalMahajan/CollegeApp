@@ -17,7 +17,7 @@
 @if(in_array($membership->role, ['school_admin','department_member']))
 <a href="{{ route('school-departments.index', $membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700"><x-ui.icon name="layout-grid"/> Departments</a>
 @endif
-<a href="{{ route('school-employees.index', $membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="users"/> Employee tree</a>
+@if($membership->role !== 'organization_viewer')<a href="{{ route('school-employees.index', $membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="users"/> Employee tree</a>@endif
 @if($membership->role==='school_admin')
 <a href="{{ route('organization-users.index', $membership->school) }}" class="rounded-lg border border-indigo-200 px-3 py-2 text-sm font-semibold text-indigo-700">Organization users</a>
 <a href="{{ route('school-campuses.index', $membership->school) }}" class="rounded-lg border border-indigo-200 px-3 py-2 text-sm font-semibold text-indigo-700">Manage campuses</a>
