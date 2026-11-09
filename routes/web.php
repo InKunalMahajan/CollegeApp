@@ -19,6 +19,7 @@ use App\Http\Controllers\WebsiteOwnerDashboardController;
 use App\Http\Controllers\SaasOnboardingController;
 use App\Http\Controllers\SaasPlanController;
 use App\Http\Controllers\SaasInvoiceController;
+use App\Http\Controllers\SaasBrandingController;
 use App\Http\Controllers\OrganizationUserController;
 use App\Http\Controllers\CampusUserController;
 use App\Http\Controllers\SchoolEmployeeProfileController;
@@ -88,6 +89,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/organization-admins', [WebsiteOwnerUserController::class, 'grant'])->name('website-owner.admins.grant');
         Route::delete('/organization-admins/{membership}', [WebsiteOwnerUserController::class, 'revoke'])->name('website-owner.admins.revoke');
     });
+    Route::get('/schools/{school}/saas/branding', [SaasBrandingController::class, 'index'])->middleware('school.can:school.administration.manage')->name('saas.branding.index');
+    Route::put('/schools/{school}/saas/branding', [SaasBrandingController::class, 'update'])->middleware('school.can:school.administration.manage')->name('saas.branding.update');
+    Route::post('/schools/{school}/saas/domains', [SaasBrandingController::class, 'requestDomain'])->middleware('school.can:school.administration.manage')->name('saas.branding.domain');
     Route::prefix('schools/{school}/user-access')->middleware('school.can:school.users.manage')->group(function () {
         Route::get('/', [OrganizationUserController::class, 'index'])->name('organization-users.index');
         Route::post('/', [OrganizationUserController::class, 'store'])->name('organization-users.store');
