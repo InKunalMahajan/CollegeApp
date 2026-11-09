@@ -10,11 +10,12 @@
 
     $schoolContext = request()->route('school');
     if ($schoolContext instanceof \App\Models\School) {
+        $access = app(\App\Services\SchoolAccess::class);
         $contextRole = \App\Models\SchoolMembership::query()
             ->where('school_id', $schoolContext->id)
             ->where('user_id', $person->id)
             ->value('role');
-        if (in_array($contextRole, ['school_admin', 'auditor', 'department_member'], true)) {
+        if ($access->can($person, $schoolContext, 'school.employees.view')) {
             $nav[] = ['title' => 'People', 'icon' => 'users', 'items' => [[
                 'label' => 'Employee org tree',
                 'icon' => 'users',
@@ -22,7 +23,7 @@
                 'active' => request()->routeIs('school-employees.*'),
             ]]];
         }
-        if (in_array($contextRole, ['school_admin', 'department_member'], true)) {
+        if ($access->can($person, $schoolContext, 'school.departments.view')) {
             $assignedDepartments = \App\Models\SchoolDepartment::query()
                 ->where('school_id', $schoolContext->id)
                 ->when($contextRole !== 'school_admin', fn ($query) => $query->whereHas(
@@ -56,6 +57,7 @@
                 ['label' => 'School dashboard', 'icon' => 'layout-dashboard', 'url' => route('school-dashboard.index', $schoolContext), 'active' => request()->routeIs('school-dashboard.*')],
                 ['label' => 'School portal', 'icon' => 'school', 'url' => route('school-portal.index', $schoolContext), 'active' => request()->routeIs('school-portal.*')],
                 ['label' => 'Security report', 'icon' => 'shield-check', 'url' => route('school-security.report', $schoolContext), 'active' => request()->routeIs('school-security.*')],
+                ['label' => 'Role access matrix', 'icon' => 'shield-check', 'url' => route('school-permissions.index', $schoolContext), 'active' => request()->routeIs('school-permissions.*')],
             ];
             if ($membership->role === 'school_admin') {
                 foreach ([

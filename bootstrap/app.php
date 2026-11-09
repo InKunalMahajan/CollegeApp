@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Middleware\EnsureRole;
+use App\Http\Middleware\EnsureSchoolPermission;
+use App\Http\Middleware\EnsureDepartmentPermission;
 use App\Http\Middleware\EnsureSchoolMembership;
 use App\Http\Middleware\EnsureLegacyGlobalAccess;
 use Illuminate\Foundation\Application;
@@ -14,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['role' => EnsureRole::class, 'school.member' => EnsureSchoolMembership::class, 'legacy.global' => EnsureLegacyGlobalAccess::class]);
+        $middleware->alias(['role' => EnsureRole::class, 'school.member' => EnsureSchoolMembership::class, 'legacy.global' => EnsureLegacyGlobalAccess::class, 'school.can' => EnsureSchoolPermission::class, 'department.can' => EnsureDepartmentPermission::class]);
         $middleware->redirectGuestsTo(fn () => route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

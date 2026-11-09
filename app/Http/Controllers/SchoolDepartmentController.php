@@ -6,6 +6,7 @@ use App\Models\School;
 use App\Models\SchoolDepartment;
 use App\Models\SchoolDepartmentMembership;
 use App\Models\SchoolMembership;
+use App\Services\SchoolAccess;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +25,9 @@ class SchoolDepartmentController extends Controller
 
     private function isAdmin(Request $request, School $school): bool
     {
-        return $this->schoolRole($request, $school) === 'school_admin';
+        return app(SchoolAccess::class)->can(
+            $request->user(), $school, 'school.departments.manage'
+        );
     }
 
     private function authorizedMembership(Request $request, School $school, SchoolDepartment $department): ?SchoolDepartmentMembership
@@ -42,7 +45,12 @@ class SchoolDepartmentController extends Controller
             ->where('user_id', $request->user()->id)
             ->whereIn('role', SchoolDepartmentMembership::ROLES)->first();
 
-        abort_unless($membership, 403);
+        abort_unless(
+            $membership && app(SchoolAccess::class)->canDepartment(
+                $request->user(), $school, $department, 'department.dashboard.view'
+            ),
+            403
+        );
 
         return $membership;
     }
@@ -50,7 +58,9 @@ class SchoolDepartmentController extends Controller
     public function index(Request $request, School $school): View
     {
         $role = $this->schoolRole($request, $school);
-        abort_unless(in_array($role, ['school_admin', 'department_member'], true), 403);
+        abort_unless(app(SchoolAccess::class)->can(
+            $request->user(), $school, 'school.departments.view'
+        ), 403);
 
         $departments = SchoolDepartment::query()->where('school_id', $school->id)
             ->when($role !== 'school_admin', fn ($query) => $query->whereHas(
