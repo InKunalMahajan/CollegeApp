@@ -190,6 +190,7 @@ class SchoolEmployeeController extends Controller
             'items' => $items,
             'directory' => $directory,
             'canManage' => $canManage,
+            'canViewDepartments' => $access->can($request->user(), $school, 'school.departments.view'),
             'employeeCount' => $filteredCount,
             'totalVisible' => $totalVisible,
             'filteredCount' => $filteredCount,
