@@ -8,7 +8,7 @@
         ['label' => 'My Schools', 'icon' => 'school', 'url' => route('my-schools.index'), 'active' => request()->routeIs('my-schools.*')],
     ]];
 
-    if (\\App\\Models\\WebsiteOwner::where('user_id', $person->id)->exists()) {
+    if (\App\Models\WebsiteOwner::where('user_id', $person->id)->exists()) {
         $nav[] = ['title' => 'Website Owner', 'icon' => 'shield-check', 'items' => [[
             'label' => 'Platform user accounts', 'icon' => 'user-cog',
             'url' => route('website-owner.users.index'),
