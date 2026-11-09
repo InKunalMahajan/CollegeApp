@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title','School Dashboard')
-@section('heading','School Dashboard')
+@section('title','Organization Dashboard')
+@section('heading','Organization Dashboard')
 @section('content')
-<x-ui.page-heading :title="$school->name.' — Dashboard'" description="Verified school-owned records. Attendance and exam figures use your selected dates; fee balances are lifetime totals.">
+<x-ui.page-heading :title="$school->name.' — Organization Dashboard'" description="Organization-only overview of verified records across authorized campuses. Attendance and exam figures use selected dates; fee balances are lifetime totals.">
     <x-slot:actions>
         <a href="{{ route('school-portal.index',$school) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"><x-ui.icon name="school"/> School portal</a>
         <a href="{{ route('school-dashboard.export', array_merge(['school'=>$school],request()->only('start_date','end_date'))) }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"><x-ui.icon name="chart-column"/> Export CSV</a>
@@ -92,7 +92,14 @@
     </x-ui.card>
 </div>
 <div class="mt-6 flex flex-wrap gap-3 text-sm">
+    <a class="font-semibold text-indigo-700 hover:underline" href="{{ route('my-schools.index') }}">Switch workspace</a>
+    @if(app(\App\Services\SchoolAccess::class)->can(auth()->user(), $school, 'school.security.view'))
     <a class="font-semibold text-indigo-700 hover:underline" href="{{ route('school-security.report',$school) }}">Security and audit report</a>
+    @endif
+    @if(app(\App\Services\SchoolAccess::class)->can(auth()->user(), $school, 'school.administration.manage'))
+    <a class="font-semibold text-indigo-700 hover:underline" href="{{ route('school-campuses.index',$school) }}">Manage {{ $school->name }} campuses</a>
+    <a class="font-semibold text-indigo-700 hover:underline" href="{{ route('organization-users.index',$school) }}">Organization user management</a>
+    @endif
     @if(\App\Models\SchoolMembership::where('school_id',$school->id)->where('user_id',auth()->id())->where('role','school_admin')->exists())
         <a class="font-semibold text-indigo-700 hover:underline" href="{{ route('school-students.index',$school) }}">Manage school students</a>
     @endif
