@@ -97,7 +97,13 @@ class Phase28EmployeeOrgTreeTest extends TestCase
             ...$this->employeeData('T2001'), 'manager_id' => $assistant->id,
         ])->assertSessionHasErrors('manager_id');
 
+        // Not a member of School B: authorization must deny this school first.
         $this->put(route('school-employees.update', [$b, $foreign]), [
+            ...$this->employeeData('T2003'),
+        ])->assertForbidden();
+
+        // A foreign employee ID cannot be used in School A's authorized URL.
+        $this->put(route('school-employees.update', [$a, $foreign]), [
             ...$this->employeeData('T2003'),
         ])->assertNotFound();
 
