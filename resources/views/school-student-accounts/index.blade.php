@@ -28,7 +28,7 @@
 </form>
 </section>
 
-<section class="rounded-xl border border-slate-200 bg-white p-6">
+<section class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-6">
 <h3 class="mb-4 font-semibold">Linked accounts in {{ $school->name }}</h3>
 <div class="space-y-3">
 @forelse($links as $link)

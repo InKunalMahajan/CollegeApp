@@ -9,7 +9,7 @@
         <a href="{{ route('teachers.create') }}" class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">+ Add teacher</a>
     </div>
 </div>
-<div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+<div class="schoolapp-table-wrap overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
 <table class="w-full min-w-[650px] text-left text-sm">
     <thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="px-5 py-4">Teacher</th><th class="px-5 py-4">Employee code</th><th class="px-5 py-4">School</th><th class="px-5 py-4">Campus</th><th class="px-5 py-4">Designation</th><th class="px-5 py-4">Action</th></tr></thead>
     <tbody class="divide-y divide-slate-100">

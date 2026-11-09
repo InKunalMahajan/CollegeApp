@@ -7,7 +7,7 @@
         <h2 class="text-xl font-semibold">SchoolApp module roadmap</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600">All 16 planned modules are listed below. A status of <strong>Partial</strong> means some functionality exists; it does not mean the module is complete. Planned modules are not interactive yet.</p>
     </div>
-    <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="schoolapp-table-wrap overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
         <table class="w-full min-w-[680px] text-left text-sm">
             <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr><th scope="col" class="px-5 py-4">No.</th><th scope="col" class="px-5 py-4">Module</th><th scope="col" class="px-5 py-4">Main features</th><th scope="col" class="px-5 py-4">Status</th></tr>

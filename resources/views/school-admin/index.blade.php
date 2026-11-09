@@ -12,7 +12,7 @@
 @if($errors->any())<div role="alert" class="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 @if(session('success'))<p role="status" class="mb-5 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">{{ session('success') }}</p>@endif
 <div class="grid gap-6 lg:grid-cols-2">
-<section class="rounded-xl border border-slate-200 bg-white p-6">
+<section class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-6">
 <h3 class="mb-3 font-semibold">Add an auditor</h3>
 <p class="mb-4 text-sm text-slate-600">An auditor can view the school overview and security summary. This action cannot grant school administrator access.</p>
 <form method="POST" action="{{ route('school-admin.auditors.store',$school) }}" class="flex flex-wrap gap-3">@csrf
@@ -35,7 +35,7 @@
 @empty<p class="text-sm text-slate-500">No members.</p>@endforelse
 </div>
 </section>
-<section class="rounded-xl border border-slate-200 bg-white p-6">
+<section class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-6">
 <h3 class="mb-3 font-semibold">Verify legacy student ownership</h3>
 <p class="mb-4 text-sm text-slate-600">Only previously unassigned students whose existing class enrollments all belong to this school can be claimed. Admissions without enrollments require a separate manual review.</p>
 <form method="POST" action="{{ route('school-admin.students.claim',$school) }}" class="space-y-3">@csrf

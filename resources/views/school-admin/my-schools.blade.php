@@ -17,7 +17,7 @@
 @endif
 </div></x-ui.card>
 @empty
-<p class="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Your account has no school membership yet. Ask a trusted system administrator to provision access.</p>
+<p class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Your account has no school membership yet. Ask a trusted system administrator to provision access.</p>
 @endforelse
 </div>
 @endsection

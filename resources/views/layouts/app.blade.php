@@ -183,7 +183,7 @@
         </header>
 
         <main id="main-content" tabindex="-1" class="w-full flex-1 px-4 py-6 sm:px-6 sm:py-8 xl:px-8">
-            <div class="mx-auto w-full max-w-[1480px]">
+            <div class="schoolapp-page mx-auto w-full max-w-[1480px]">
                 @if(session('success'))<x-ui.alert type="success" class="mb-6">{{ session('success') }}</x-ui.alert>@endif
                 @if(session('error'))<x-ui.alert type="error" class="mb-6">{{ session('error') }}</x-ui.alert>@endif
                 @yield('content')

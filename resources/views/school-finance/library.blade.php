@@ -15,6 +15,6 @@
 </section>
 <section class="mb-6 rounded-xl border border-slate-200 bg-white p-6"><h3 class="mb-3 font-semibold">Catalog</h3>
 <ul class="space-y-2 text-sm">@forelse($books as $book)<li>{{ $book->title }} — {{ $book->copies->count() }} copies</li>@empty<li>No catalog books.</li>@endforelse</ul></section>
-<section class="rounded-xl border border-slate-200 bg-white p-6"><h3 class="mb-3 font-semibold">Loans</h3>
+<section class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-6"><h3 class="mb-3 font-semibold">Loans</h3>
 <div class="space-y-3">@forelse($loans as $loan)<div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3"><div><p>{{ $loan->copy->book->title }} ({{ $loan->copy->barcode }})</p><p class="text-sm text-slate-600">{{ $loan->enrollment->student->first_name }} {{ $loan->enrollment->student->last_name }} · {{ $loan->returned_on ? 'Returned' : 'Due '.$loan->due_on->format('Y-m-d') }}</p></div>@unless($loan->returned_on)<form method="POST" action="{{ route('school-finance.return',[$school,$loan]) }}">@csrf<button class="rounded-lg border border-indigo-200 px-3 py-2 font-semibold text-indigo-700">Return book</button></form>@endunless</div>@empty<p>No loans yet.</p>@endforelse</div><div class="mt-4">{{ $loans->links() }}</div></section>
 @endsection
