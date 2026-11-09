@@ -119,6 +119,74 @@ class SchoolDepartmentController extends Controller
             ->with('success', 'Department created.');
     }
 
+    public function update(Request $request, School $school, SchoolDepartment $department): RedirectResponse
+    {
+        abort_unless((int) $department->school_id === (int) $school->id, 404);
+        abort_unless($this->isAdmin($request, $school), 403);
+
+        $request->merge(['code' => strtoupper(trim((string) $request->input('code')))]);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'code' => [
+                'required', 'string', 'max:32', 'regex:/^[A-Za-z0-9_-]+$/',
+                Rule::unique('school_departments', 'code')->where('school_id', $school->id)
+                    ->ignore($department->id),
+            ],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        DB::transaction(function () use ($request, $school, $department, $data) {
+            $record = SchoolDepartment::query()->where('school_id', $school->id)
+                ->whereKey($department->id)->lockForUpdate()->firstOrFail();
+            $record->fill($data);
+            $changed = array_keys($record->getDirty());
+
+            if ($changed) {
+                $record->save();
+                $this->audit($school, $request->user()->id, 'department.updated', $record->id, [
+                    'fields' => $changed,
+                ]);
+            }
+        });
+
+        return redirect()->route('school-departments.show', [$school, $department])
+            ->with('success', 'Department updated.');
+    }
+
+    public function destroy(Request $request, School $school, SchoolDepartment $department): RedirectResponse
+    {
+        abort_unless((int) $department->school_id === (int) $school->id, 404);
+        abort_unless($this->isAdmin($request, $school), 403);
+
+        DB::transaction(function () use ($request, $school, $department) {
+            $record = SchoolDepartment::query()->where('school_id', $school->id)
+                ->whereKey($department->id)->lockForUpdate()->firstOrFail();
+
+            // Do not remove departments while employee or access records
+            // reference them. Foreign keys provide a second line of defence.
+            $hasEmployees = \App\Models\SchoolEmployee::withTrashed()
+                ->where('school_id', $school->id)
+                ->where('school_department_id', $record->id)->exists();
+            $hasMembers = SchoolDepartmentMembership::query()
+                ->where('school_id', $school->id)->where('school_department_id', $record->id)
+                ->exists();
+
+            if ($hasEmployees || $hasMembers) {
+                throw ValidationException::withMessages([
+                    'department' => 'Remove employee assignments and department member access before deleting.',
+                ]);
+            }
+
+            $this->audit($school, $request->user()->id, 'department.deleted', $record->id, [
+                'code' => $record->code,
+            ]);
+            $record->delete();
+        });
+
+        return redirect()->route('school-departments.index', $school)
+            ->with('success', 'Empty department deleted.');
+    }
+
     public function assign(Request $request, School $school, SchoolDepartment $department): RedirectResponse
     {
         abort_unless($department->school_id === $school->id, 404);
