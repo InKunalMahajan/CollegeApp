@@ -322,6 +322,49 @@ class Phase34OrganizationCampusRbacTest extends TestCase
         $this->assertNull($student->fresh()->campus_id);
     }
 
+    public function test_organization_admin_can_edit_campus_and_only_delete_unreferenced_campuses(): void
+    {
+        $school = $this->school('CAMPUSCRUD');
+        $admin = $this->organizationAdmin($school);
+        $empty = $this->campus($school, 'Mumbai');
+        $used = $this->campus($school, 'Pune');
+        $this->employee($school, $used, 'PUNEUSED34');
+
+        $this->actingAs($admin)->put(
+            route('school-campuses.update', [$school, $empty]),
+            ['name' => 'TEACH Mumbai Central', 'code' => 'mumbai-central', 'city' => 'Mumbai']
+        )->assertRedirect();
+
+        $this->assertSame('MUMBAI-CENTRAL', $empty->fresh()->code);
+        $this->assertSame('TEACH Mumbai Central', $empty->fresh()->name);
+
+        $this->delete(route('school-campuses.destroy', [$school, $used]))
+            ->assertSessionHasErrors('campus');
+        $this->assertDatabaseHas('campuses', ['id' => $used->id]);
+
+        $this->delete(route('school-campuses.destroy', [$school, $empty]))
+            ->assertRedirect();
+        $this->assertDatabaseMissing('campuses', ['id' => $empty->id]);
+        $this->assertDatabaseHas('school_audit_events', [
+            'school_id' => $school->id, 'action' => 'campus.deleted',
+            'subject_id' => $empty->id,
+        ]);
+    }
+
+    public function test_campus_admin_cannot_rename_or_delete_campus(): void
+    {
+        $school = $this->school('EDITDENY');
+        $mumbai = $this->campus($school, 'Mumbai');
+        $admin = $this->campusAdmin($mumbai);
+
+        $this->actingAs($admin)->put(route('school-campuses.update', [$school, $mumbai]), [
+            'name' => 'Unauthorized Rename', 'code' => 'NEWCODE', 'city' => 'Pune',
+        ])->assertForbidden();
+        $this->delete(route('school-campuses.destroy', [$school, $mumbai]))
+            ->assertForbidden();
+        $this->assertSame('TEACH Mumbai', $mumbai->fresh()->name);
+    }
+
     public function test_global_admin_without_a_membership_cannot_access_any_campus(): void
     {
         $school = $this->school('GLOBAL');
