@@ -94,24 +94,79 @@ class SchoolEmployeeController extends Controller
 
     public function index(Request $request, School $school): View
     {
-        $role = $this->schoolRole($request, $school);
-        abort_unless(app(SchoolAccess::class)->can(
-            $request->user(), $school, 'school.employees.view'
-        ), 403);
+        $access = app(SchoolAccess::class);
+        abort_unless($access->can($request->user(), $school, 'school.employees.view'), 403);
 
-        $query = SchoolEmployee::query()->where('school_id', $school->id);
-        if ($role === 'department_member') {
-            $ids = $this->allowedDepartmentIds($request, $school, $role);
-            $query->whereIn('school_department_id', $ids);
+        $role = $this->schoolRole($request, $school);
+        $canManage = $access->can($request->user(), $school, 'school.employees.manage');
+
+        // Establish visibility *before* calculating any counters or filters.
+        // Never leak another school's or department's employee totals.
+        $visible = SchoolEmployee::query()->where('school_id', $school->id);
+        $visibleDepartmentIds = $role === 'department_member'
+            ? $access->assignedDepartmentIds($request->user(), $school)
+            : null;
+        if ($visibleDepartmentIds !== null) {
+            $visible->whereIn('school_department_id', $visibleDepartmentIds);
         }
 
         $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
             'employment_status' => ['nullable', Rule::in(SchoolEmployee::STATUSES)],
+            'school_department_id' => [
+                'nullable', 'integer',
+                Rule::exists('school_departments', 'id')->where('school_id', $school->id),
+            ],
+            'location' => ['nullable', 'string', 'max:100'],
         ]);
-        $statusFilter = $filters['employment_status'] ?? '';
-        $query->when($statusFilter !== '', fn ($q) => $q->where('employment_status', $statusFilter));
 
-        $employees = $query->with('department')->orderBy('display_name')->get();
+        $search = trim($filters['search'] ?? '');
+        $statusFilter = $filters['employment_status'] ?? '';
+        $departmentFilter = $filters['school_department_id'] ?? '';
+        $locationFilter = trim($filters['location'] ?? '');
+
+        $totalVisible = (clone $visible)->count();
+        $statusCounts = (clone $visible)
+            ->selectRaw('employment_status, COUNT(*) AS total')
+            ->groupBy('employment_status')
+            ->pluck('total', 'employment_status');
+        $assignedCount = (clone $visible)->whereNotNull('school_department_id')->count();
+        $managerLinkedCount = (clone $visible)->whereNotNull('manager_id')->count();
+
+        $departments = SchoolDepartment::query()->where('school_id', $school->id)
+            ->when($visibleDepartmentIds !== null, fn ($q) => $q->whereIn('id', $visibleDepartmentIds))
+            ->orderBy('name')->get();
+
+        $departmentCounts = (clone $visible)
+            ->whereNotNull('school_department_id')
+            ->selectRaw('school_department_id, COUNT(*) AS total')
+            ->groupBy('school_department_id')
+            ->pluck('total', 'school_department_id');
+
+        $locations = (clone $visible)->whereNotNull('location')->where('location', '<>', '')
+            ->distinct()->orderBy('location')->pluck('location');
+
+        $filtered = (clone $visible)
+            ->when($search !== '', fn ($q) => $q->where(function ($q) use ($search) {
+                $q->where('display_name', 'like', '%'.$search.'%')
+                    ->orWhere('employee_number', 'like', '%'.$search.'%')
+                    ->orWhere('job_title', 'like', '%'.$search.'%');
+            }))
+            ->when($statusFilter !== '', fn ($q) => $q->where('employment_status', $statusFilter))
+            ->when($departmentFilter !== '', fn ($q) => $q->where('school_department_id', $departmentFilter))
+            ->when($locationFilter !== '', fn ($q) => $q->where('location', $locationFilter));
+
+        $filteredCount = (clone $filtered)->count();
+        $directory = (clone $filtered)->with('department')
+            ->orderBy('display_name')->orderBy('id')->paginate(20)->withQueryString();
+
+        // A verified full tree is useful for small teams, but a huge recursive
+        // Blade tree is slow and difficult to navigate. Show the directory with
+        // pagination for larger results rather than silently truncate the tree.
+        $treeAvailable = $filteredCount <= 250;
+        $employees = $treeAvailable
+            ? (clone $filtered)->with('department')->orderBy('display_name')->orderBy('id')->get()
+            : collect();
         $visibleIds = $employees->pluck('id')->flip();
         $childCounts = $employees->filter(
             fn ($employee) => $employee->manager_id !== null && $visibleIds->has($employee->manager_id)
@@ -133,14 +188,23 @@ class SchoolEmployeeController extends Controller
         return view('school-employees.index', [
             'school' => $school,
             'items' => $items,
-            'canManage' => $role === 'school_admin',
-            'employeeCount' => $employees->count(),
+            'directory' => $directory,
+            'canManage' => $canManage,
+            'employeeCount' => $filteredCount,
+            'totalVisible' => $totalVisible,
+            'filteredCount' => $filteredCount,
+            'treeAvailable' => $treeAvailable,
+            'statusCounts' => $statusCounts,
+            'assignedCount' => $assignedCount,
+            'managerLinkedCount' => $managerLinkedCount,
+            'departmentCounts' => $departmentCounts,
+            'search' => $search,
             'statusFilter' => $statusFilter,
-            'statusCounts' => $employees->countBy('employment_status'),
-            'departments' => $role === 'school_admin'
-                ? SchoolDepartment::where('school_id', $school->id)->orderBy('name')->get()
-                : collect(),
-            'managers' => $role === 'school_admin'
+            'departmentFilter' => $departmentFilter,
+            'locationFilter' => $locationFilter,
+            'locations' => $locations,
+            'departments' => $departments,
+            'managers' => $canManage
                 ? SchoolEmployee::where('school_id', $school->id)->orderBy('display_name')->get()
                 : collect(),
         ]);
