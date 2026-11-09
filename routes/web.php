@@ -6,6 +6,7 @@ use App\Http\Controllers\SchoolPortalController;
 use App\Http\Controllers\SchoolDashboardController;
 use App\Http\Controllers\SchoolDepartmentController;
 use App\Http\Controllers\SchoolEmployeeController;
+use App\Http\Controllers\SchoolPermissionMatrixController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
 use App\Http\Controllers\SchoolAcademicController;
 use App\Http\Controllers\SchoolAdmissionController;
@@ -46,6 +47,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
     Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
+    Route::get('/schools/{school}/permissions', SchoolPermissionMatrixController::class)
+        ->middleware('school.can:school.security.view')
+        ->name('school-permissions.index');
+
     Route::prefix('schools/{school}/employees')->group(function () {
         Route::get('/', [SchoolEmployeeController::class, 'index'])->middleware('school.can:school.employees.view')->name('school-employees.index');
         Route::post('/', [SchoolEmployeeController::class, 'store'])->middleware('school.can:school.employees.manage')->name('school-employees.store');
