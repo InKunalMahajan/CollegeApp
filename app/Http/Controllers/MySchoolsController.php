@@ -13,7 +13,7 @@ class MySchoolsController extends Controller
         // Only the signed-in user's schools are exposed. No global school list.
         $memberships=SchoolMembership::with('school')
             ->where('user_id',$request->user()->id)
-            ->whereIn('role',['school_admin','auditor'])
+            ->whereIn('role',['school_admin','auditor','department_member'])
             ->orderBy('school_id')->get();
 
         return view('school-admin.my-schools',compact('memberships'));

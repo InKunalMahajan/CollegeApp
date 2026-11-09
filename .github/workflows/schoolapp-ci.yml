@@ -114,6 +114,10 @@ jobs:
           test -s public/build/manifest.json
       - name: Check release asset preflight
         run: php artisan school:release-check
+      - name: Permit trigger creation in disposable MySQL CI service
+        run: |
+          mysql --protocol=TCP -h 127.0.0.1 -u root -pci_root_password \
+            -e "SET GLOBAL log_bin_trust_function_creators = 1;"
       - name: Run MySQL feature and unit tests
         run: vendor/bin/phpunit --configuration phpunit.mysql.xml --colors=never
 

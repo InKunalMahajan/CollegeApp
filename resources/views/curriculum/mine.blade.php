@@ -6,7 +6,7 @@
 @if($errors->any())<div role="alert" class="mb-6 rounded-lg bg-rose-50 p-4 text-sm text-rose-700"><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 <div class="space-y-6">
 @forelse($assignments as $assignment)
-<section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><h2 class="text-lg font-semibold">{{ $assignment->subject->name }} — {{ $assignment->classSection->name }}</h2>
+<section class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-5 shadow-sm"><h2 class="text-lg font-semibold">{{ $assignment->subject->name }} — {{ $assignment->classSection->name }}</h2>
 @php($matchingUnits = $units->where('subject_id', $assignment->subject_id))
 @forelse($matchingUnits as $unit)<div class="mt-5"><h3 class="border-b border-slate-100 pb-2 text-sm font-semibold">Unit {{ $unit->sequence }}: {{ $unit->title }}</h3>
 <div class="mt-3 space-y-3">@forelse($unit->lessons as $lesson)
@@ -20,6 +20,6 @@
 <button class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Save</button></form>
 @empty<p class="text-sm text-slate-500">No lessons for this unit.</p>@endforelse</div></div>
 @empty<p class="mt-4 text-sm text-slate-500">No curriculum units yet.</p>@endforelse</section>
-@empty<div class="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">You have no assigned subjects. Contact your administrator.</div>@endforelse
+@empty<div class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">You have no assigned subjects. Contact your administrator.</div>@endforelse
 </div>
 @endsection

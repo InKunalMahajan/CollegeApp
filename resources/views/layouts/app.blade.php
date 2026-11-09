@@ -10,6 +10,45 @@
 
     $schoolContext = request()->route('school');
     if ($schoolContext instanceof \App\Models\School) {
+        $access = app(\App\Services\SchoolAccess::class);
+        $contextRole = \App\Models\SchoolMembership::query()
+            ->where('school_id', $schoolContext->id)
+            ->where('user_id', $person->id)
+            ->value('role');
+        if ($access->can($person, $schoolContext, 'school.employees.view')) {
+            $nav[] = ['title' => 'People', 'icon' => 'users', 'items' => [[
+                'label' => 'Employee org tree',
+                'icon' => 'users',
+                'url' => route('school-employees.index', $schoolContext),
+                'active' => request()->routeIs('school-employees.*'),
+            ]]];
+        }
+        if ($access->can($person, $schoolContext, 'school.departments.view')) {
+            $assignedDepartments = \App\Models\SchoolDepartment::query()
+                ->where('school_id', $schoolContext->id)
+                ->when($contextRole !== 'school_admin', fn ($query) => $query->whereHas(
+                    'memberships',
+                    fn ($members) => $members->where('school_id', $schoolContext->id)
+                        ->where('user_id', $person->id)
+                        ->whereIn('role', \App\Models\SchoolDepartmentMembership::ROLES)
+                ))->orderBy('name')->get();
+            $departmentLinks = [[
+                'label' => 'All departments',
+                'icon' => 'layout-grid',
+                'url' => route('school-departments.index', $schoolContext),
+                'active' => request()->routeIs('school-departments.index'),
+            ]];
+            foreach ($assignedDepartments as $assignedDepartment) {
+                $departmentLinks[] = [
+                    'label' => $assignedDepartment->name,
+                    'icon' => 'school',
+                    'url' => route('school-departments.show', [$schoolContext, $assignedDepartment]),
+                    'active' => request()->routeIs('school-departments.show')
+                        && (string) (request()->route('department')?->id) === (string) $assignedDepartment->id,
+                ];
+            }
+            $nav[] = ['title' => 'Departments', 'icon' => 'layout-grid', 'items' => $departmentLinks];
+        }
         $membership = \App\Models\SchoolMembership::query()
             ->where('school_id', $schoolContext->id)->where('user_id', $person->id)
             ->whereIn('role', ['school_admin', 'auditor'])->first();
@@ -18,6 +57,7 @@
                 ['label' => 'School dashboard', 'icon' => 'layout-dashboard', 'url' => route('school-dashboard.index', $schoolContext), 'active' => request()->routeIs('school-dashboard.*')],
                 ['label' => 'School portal', 'icon' => 'school', 'url' => route('school-portal.index', $schoolContext), 'active' => request()->routeIs('school-portal.*')],
                 ['label' => 'Security report', 'icon' => 'shield-check', 'url' => route('school-security.report', $schoolContext), 'active' => request()->routeIs('school-security.*')],
+                ['label' => 'Role access matrix', 'icon' => 'shield-check', 'url' => route('school-permissions.index', $schoolContext), 'active' => request()->routeIs('school-permissions.*')],
             ];
             if ($membership->role === 'school_admin') {
                 foreach ([
@@ -183,7 +223,7 @@
         </header>
 
         <main id="main-content" tabindex="-1" class="w-full flex-1 px-4 py-6 sm:px-6 sm:py-8 xl:px-8">
-            <div class="mx-auto w-full max-w-[1480px]">
+            <div class="schoolapp-page mx-auto w-full max-w-[1480px]">
                 @if(session('success'))<x-ui.alert type="success" class="mb-6">{{ session('success') }}</x-ui.alert>@endif
                 @if(session('error'))<x-ui.alert type="error" class="mb-6">{{ session('error') }}</x-ui.alert>@endif
                 @yield('content')

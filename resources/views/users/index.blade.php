@@ -6,7 +6,7 @@
     <p class="text-sm text-slate-600">Manage account access for administrators, staff, teachers and students.</p>
     <a href="{{ route('users.create') }}" class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700">+ Create account</a>
 </div>
-<div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+<div class="schoolapp-table-wrap overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
     <table class="w-full text-left text-sm">
         <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
             <tr><th scope="col" class="px-5 py-4">Name</th><th scope="col" class="px-5 py-4">Email</th><th scope="col" class="px-5 py-4">Role</th></tr>

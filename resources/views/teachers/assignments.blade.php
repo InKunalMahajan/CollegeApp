@@ -4,7 +4,7 @@
 @section('content')
 @if($errors->any())<div role="alert" class="mb-5 rounded-lg bg-rose-50 p-4 text-sm text-rose-700"><ul class="list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 <div class="grid gap-6 xl:grid-cols-2">
-    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="text-lg font-semibold">Assign a subject</h2><p class="mt-1 text-sm text-slate-500">Assign a teacher to a subject for one class section.</p>
         <form method="POST" action="{{ route('teacher-assignments.subject.store') }}" class="mt-5 space-y-4">@csrf
             <label for="subject_teacher" class="block text-sm font-semibold">Teacher</label><select required id="subject_teacher" name="teacher_profile_id" class="w-full rounded-lg border border-slate-300 p-3"><option value="">Select teacher</option>@foreach($teachers as $teacher)<option value="{{ $teacher->id }}">{{ $teacher->user->name }} — {{ $teacher->campus->name }}</option>@endforeach</select>
@@ -13,7 +13,7 @@
             <button class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Assign subject</button>
         </form>
     </section>
-    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 class="text-lg font-semibold">Assign class teacher</h2><p class="mt-1 text-sm text-slate-500">Each class section has at most one assigned class teacher.</p>
         <form method="POST" action="{{ route('teacher-assignments.class.store') }}" class="mt-5 space-y-4">@csrf
             <label for="class_teacher" class="block text-sm font-semibold">Teacher</label><select required id="class_teacher" name="teacher_profile_id" class="w-full rounded-lg border border-slate-300 p-3"><option value="">Select teacher</option>@foreach($teachers as $teacher)<option value="{{ $teacher->id }}">{{ $teacher->user->name }} — {{ $teacher->campus->name }}</option>@endforeach</select>

@@ -82,3 +82,130 @@
         .schoolapp-sidebar, .schoolapp-main { transition: none; }
     }
 }
+
+
+/* Shared professional content system; restricted to the authenticated app.
+ * Existing Blade screens inherit these styles without changing their routes,
+ * form methods, validation names, or user permissions. */
+@layer components {
+    .schoolapp-page {
+        --sa-ink: #0f172a;
+        --sa-subtle: #64748b;
+        --sa-border: #e2e8f0;
+        --sa-brand: #4f46e5;
+        --sa-surface: #fff;
+        color: var(--sa-ink);
+    }
+    .schoolapp-panel {
+        border: 1px solid var(--sa-border);
+        border-radius: 1rem;
+        background: var(--sa-surface);
+        box-shadow: 0 2px 5px rgb(15 23 42 / .025), 0 12px 30px rgb(15 23 42 / .025);
+        transition: border-color .16s ease, box-shadow .16s ease;
+    }
+    .schoolapp-page :where(section.rounded-xl, article.rounded-xl, div.rounded-xl.border.bg-white) {
+        border-radius: 1rem;
+        border-color: var(--sa-border);
+        box-shadow: 0 2px 5px rgb(15 23 42 / .025), 0 12px 30px rgb(15 23 42 / .025);
+    }
+    .schoolapp-page :where(section, article) > :where(h2, h3):first-child {
+        letter-spacing: -.016em;
+        color: #0f172a;
+    }
+    .schoolapp-page :where(label) {
+        font-weight: 600;
+        color: #334155;
+    }
+    .schoolapp-page :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea) {
+        min-height: 2.65rem;
+        max-width: 100%;
+        border: 1px solid #cbd5e1;
+        border-radius: .65rem;
+        background-color: #fff;
+        padding: .55rem .8rem;
+        color: #0f172a;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .schoolapp-page :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea):focus {
+        border-color: var(--sa-brand);
+        outline: 2px solid rgb(99 102 241 / .14);
+        outline-offset: 0;
+    }
+    .schoolapp-page :where(input, select, textarea):disabled {
+        background: #f1f5f9;
+        cursor: not-allowed;
+        opacity: .75;
+    }
+    .schoolapp-page :where(input, select, textarea)[aria-invalid="true"] {
+        border-color: #e11d48;
+    }
+    .schoolapp-page :where(button, a).bg-indigo-600 {
+        border-radius: .7rem;
+        box-shadow: 0 2px 8px rgb(79 70 229 / .16);
+        transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+    }
+    .schoolapp-page :where(button, a).bg-indigo-600:hover {
+        box-shadow: 0 4px 12px rgb(79 70 229 / .22);
+    }
+    .schoolapp-page :where(table) {
+        border-collapse: separate;
+        border-spacing: 0;
+        font-variant-numeric: tabular-nums;
+    }
+    .schoolapp-page :where(table thead) {
+        background: #f8fafc;
+        color: #475569;
+    }
+    .schoolapp-page :where(table thead th) {
+        padding: .85rem 1rem;
+        font-size: .725rem;
+        font-weight: 700;
+        letter-spacing: .065em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .schoolapp-page :where(table tbody td) {
+        padding: .85rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .schoolapp-page :where(table tbody tr:last-child td) { border-bottom: 0; }
+    .schoolapp-page :where(table tbody tr):hover { background: #f8faff; }
+    .schoolapp-page :where(table a) { font-weight: 650; }
+    .schoolapp-page :where(dl dd) { overflow-wrap: anywhere; }
+    .schoolapp-page :where(.schoolapp-form-actions) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .75rem;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 1.25rem;
+    }
+    .schoolapp-page :where(.schoolapp-empty) {
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        color: #64748b;
+        font-size: .875rem;
+    }
+    .schoolapp-page :where(.schoolapp-toolbar) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .schoolapp-page :where(button, a).bg-indigo-600,
+        .schoolapp-panel { transition: none; }
+    }
+    @media print {
+        .schoolapp-sidebar, .schoolapp-header, .schoolapp-backdrop,
+        .schoolapp-main > footer { display: none !important; }
+        .schoolapp-main { margin: 0 !important; }
+        .schoolapp-page { max-width: none !important; }
+        .schoolapp-page :where(section, article, .schoolapp-panel) { box-shadow: none; break-inside: avoid; }
+        body { background: white !important; }
+    }
+}
