@@ -16,6 +16,8 @@ class CampusAccess
         'campus.enrollments.manage',
         'campus.teaching.view',
         'campus.teaching.manage',
+        'campus.attendance.view',
+        'campus.attendance.manage',
         'campus.employees.view',
         'campus.employees.manage',
         'campus.students.view',
