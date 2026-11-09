@@ -156,7 +156,9 @@ class Phase32EmployeeDashboardTest extends TestCase
             $school, 'search' => 'Private Staff',
         ]))->assertOk()
             ->assertSee('0 matching employees')
-            ->assertDontSee('Private Staff');
+            // The user's own search text is echoed in the search input;
+            // assert the scoped result set rather than absence from HTML.
+            ->assertViewHas('directory', fn ($page) => $page->total() === 0);
     }
 
     public function test_invalid_status_and_foreign_department_filters_are_rejected(): void
