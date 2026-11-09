@@ -58,6 +58,10 @@
                 <span class="font-semibold">Organization administrator access</span>
                 <span class="mt-1 block text-xs text-slate-500">Appoint or revoke TEACH and other organization administrators</span>
             </a>
+            <a href="{{ route('website-owner.appearance.index') }}" class="block rounded-xl border border-slate-200 p-4 hover:border-indigo-300 hover:bg-indigo-50">
+                <span class="font-semibold">Colors, fonts & text size</span>
+                <span class="mt-1 block text-xs text-slate-500">Set platform colors, reading size and layout spacing</span>
+            </a>
             <a href="{{ route('my-schools.index') }}" class="block rounded-xl border border-slate-200 p-4 hover:border-indigo-300 hover:bg-indigo-50">
                 <span class="font-semibold">My authorized workspaces</span>
                 <span class="mt-1 block text-xs text-slate-500">Open only the organizations and campuses assigned to you</span>
