@@ -17,6 +17,7 @@
 @if($membership->role !== 'auditor')
 <a href="{{ route('school-departments.index', $membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700"><x-ui.icon name="layout-grid"/> Departments</a>
 @endif
+<a href="{{ route('school-employees.index', $membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="users"/> Employee tree</a>
 @if($membership->role==='school_admin')
 <a href="{{ route('school-admin.index',$membership->school) }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white"><x-ui.icon name="settings"/> Manage school</a>
 @endif
