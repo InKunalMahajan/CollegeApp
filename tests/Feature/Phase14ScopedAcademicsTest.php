@@ -47,7 +47,7 @@ class Phase14ScopedAcademicsTest extends TestCase
             'name' => 'FYJC '.$code, 'code' => 'FYJC',
         ]);
         $subject = Subject::create(['school_id' => $school->id, 'name' => 'IT '.$code, 'code' => 'IT']);
-        $student = Student::create([
+        $student = Student::create(['school_id'=>$school->id,
             'admission_number' => 'ADM'.$code,
             'first_name' => 'Student'.$code, 'last_name' => 'Sample', 'admission_date' => '2026-06-01',
         ]);

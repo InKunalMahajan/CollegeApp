@@ -39,7 +39,7 @@ class Phase11SecurityTest extends TestCase
         $campus=Campus::create(['school_id'=>$school->id,'name'=>'Main','code'=>'M']);
         $year=AcademicYear::create(['school_id'=>$school->id,'name'=>'2026-27','starts_on'=>'2026-06-01','ends_on'=>'2027-05-31']);
         $section=ClassSection::create(['campus_id'=>$campus->id,'academic_year_id'=>$year->id,'name'=>'FYJC A','code'=>'FYJC']);
-        $student=Student::create(['admission_number'=>'A'.$code,'first_name'=>'Demo','last_name'=>$code,'admission_date'=>'2026-06-01']);
+        $student=Student::create(['school_id'=>$school->id,'admission_number'=>'A'.$code,'first_name'=>'Demo','last_name'=>$code,'admission_date'=>'2026-06-01']);
         $enrollment=ClassEnrollment::create(['student_id'=>$student->id,'class_section_id'=>$section->id]);
         return compact('school','section','enrollment');
     }

@@ -15,6 +15,7 @@ use App\Models\TeacherProfile;
 use App\Models\TeacherSubjectAssignment;
 use App\Models\TimetableEntry;
 use App\Services\SchoolAuditTrail;
+use App\Services\SchoolDataScope;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,7 +38,7 @@ class SchoolAcademicController extends Controller
     private function enrollment(School $school, int $id): ClassEnrollment
     {
         return ClassEnrollment::whereKey($id)
-            ->whereHas('classSection.campus', fn ($q) => $q->where('school_id', $school->id))
+            ->whereIn('id',app(SchoolDataScope::class)->enrollmentIds($school))
             ->firstOrFail();
     }
 
@@ -58,6 +59,7 @@ class SchoolAcademicController extends Controller
     {
         return Examination::whereKey($id)
             ->whereHas('classSection.campus', fn ($q) => $q->where('school_id', $school->id))
+            ->whereHas('classSection.academicYear', fn ($q) => $q->where('school_id', $school->id))
             ->whereHas('subject', fn ($q) => $q->where('school_id', $school->id))
             ->firstOrFail();
     }
@@ -68,6 +70,7 @@ class SchoolAcademicController extends Controller
             ->whereHas('teacherProfile', fn ($q) => $q->where('school_id', $school->id))
             ->whereHas('subject', fn ($q) => $q->where('school_id', $school->id))
             ->whereHas('classSection.campus', fn ($q) => $q->where('school_id', $school->id))
+            ->whereHas('classSection.academicYear', fn ($q) => $q->where('school_id', $school->id))
             ->firstOrFail();
     }
 
@@ -80,7 +83,8 @@ class SchoolAcademicController extends Controller
         $sectionIds = $sections->pluck('id');
 
         $enrollments = ClassEnrollment::with('student', 'classSection')
-            ->whereIn('class_section_id', $sectionIds)->latest()->limit(100)->get();
+            ->whereIn('id',app(SchoolDataScope::class)->enrollmentIds($school))
+            ->latest()->limit(100)->get();
         $teachers = TeacherProfile::with('user')
             ->where('school_id', $school->id)->orderBy('employee_code')->get();
         $subjects = Subject::where('school_id', $school->id)->orderBy('name')->get();
@@ -99,7 +103,7 @@ class SchoolAcademicController extends Controller
             ->whereHas('subject', fn ($q) => $q->where('school_id', $school->id))
             ->orderBy('day_of_week')->orderBy('starts_at')->limit(100)->get();
         $attendance = StudentAttendance::with('enrollment.student')
-            ->whereHas('enrollment', fn ($q) => $q->whereIn('class_section_id', $sectionIds))
+            ->whereHas('enrollment', fn ($q) => $q->whereIn('id',app(SchoolDataScope::class)->enrollmentIds($school)))
             ->latest()->limit(30)->get();
 
         return view('school-academics.index', compact(
@@ -164,6 +168,7 @@ class SchoolAcademicController extends Controller
         $enrollment = $this->enrollment($school, (int)$data['class_enrollment_id']);
 
         DB::transaction(function () use ($data,$enrollment,$school,$audit) {
+            $this->enrollment($school,$enrollment->id);
             $row = StudentAttendance::where('class_enrollment_id',$enrollment->id)
                 ->whereDate('attendance_date',$data['attendance_date'])->lockForUpdate()->first();
             if ($row) {
@@ -252,6 +257,8 @@ class SchoolAcademicController extends Controller
         }
 
         DB::transaction(function () use ($data,$enrollment,$exam,$school,$audit) {
+            $this->enrollment($school,$enrollment->id);
+            $this->exam($school,$exam->id);
             $result=ExamResult::updateOrCreate(
                 ['examination_id'=>$exam->id,'class_enrollment_id'=>$enrollment->id],
                 ['status'=>$data['status'],
