@@ -57,6 +57,14 @@ class SchoolEmployeeController extends Controller
             'job_title' => ['required', 'string', 'max:160'],
             'department_label' => ['nullable', 'string', 'max:180'],
             'location' => ['nullable', 'string', 'max:100'],
+            'employment_status' => ['sometimes', 'required', Rule::in(SchoolEmployee::STATUSES)],
+            'employment_type' => ['sometimes', 'nullable', Rule::in(SchoolEmployee::TYPES)],
+            'joined_on' => ['sometimes', 'nullable', 'date', 'before_or_equal:today'],
+            'work_email' => [
+                'sometimes', 'nullable', 'email', 'max:255',
+                Rule::unique('school_employees', 'work_email')
+                    ->where('school_id', $school->id)->ignore($employee?->id),
+            ],
             'school_department_id' => [
                 'nullable', 'integer',
                 Rule::exists('school_departments', 'id')->where('school_id', $school->id),
@@ -83,7 +91,13 @@ class SchoolEmployeeController extends Controller
             $query->whereIn('school_department_id', $ids);
         }
 
-        $employees = $query->orderBy('display_name')->get();
+        $filters = $request->validate([
+            'employment_status' => ['nullable', Rule::in(SchoolEmployee::STATUSES)],
+        ]);
+        $statusFilter = $filters['employment_status'] ?? '';
+        $query->when($statusFilter !== '', fn ($q) => $q->where('employment_status', $statusFilter));
+
+        $employees = $query->with('department')->orderBy('display_name')->get();
         $visibleIds = $employees->pluck('id')->flip();
         $childCounts = $employees->filter(
             fn ($employee) => $employee->manager_id !== null && $visibleIds->has($employee->manager_id)
@@ -99,6 +113,7 @@ class SchoolEmployeeController extends Controller
             'manager_id' => $employee->manager_id !== null && $visibleIds->has($employee->manager_id)
                 ? $employee->manager_id : null,
             'reportees' => (int) ($childCounts[$employee->id] ?? 0),
+            'status' => $employee->employment_status,
         ])->all();
 
         return view('school-employees.index', [
@@ -106,6 +121,8 @@ class SchoolEmployeeController extends Controller
             'items' => $items,
             'canManage' => $role === 'school_admin',
             'employeeCount' => $employees->count(),
+            'statusFilter' => $statusFilter,
+            'statusCounts' => $employees->countBy('employment_status'),
             'departments' => $role === 'school_admin'
                 ? SchoolDepartment::where('school_id', $school->id)->orderBy('name')->get()
                 : collect(),
@@ -122,7 +139,9 @@ class SchoolEmployeeController extends Controller
 
         DB::transaction(function () use ($data, $request, $school) {
             $employee = SchoolEmployee::create(['school_id' => $school->id, ...$data]);
-            $this->audit($school, $request->user()->id, 'employee.created', $employee->id);
+            $this->audit($school, $request->user()->id, 'employee.created', $employee->id, [
+                'fields' => array_keys($data),
+            ]);
         });
 
         return redirect()->route('school-employees.index', $school)
@@ -152,8 +171,15 @@ class SchoolEmployeeController extends Controller
         }
 
         DB::transaction(function () use ($employee, $data, $request, $school) {
-            $employee->update($data);
-            $this->audit($school, $request->user()->id, 'employee.updated', $employee->id);
+            $employee->fill($data);
+            $fields = array_keys($employee->getDirty());
+            if ($fields === []) {
+                return;
+            }
+            $employee->save();
+            $this->audit($school, $request->user()->id, 'employee.updated', $employee->id, [
+                'fields' => $fields,
+            ]);
         });
 
         return redirect()->route('school-employees.index', $school)
@@ -260,7 +286,7 @@ class SchoolEmployeeController extends Controller
             ->with('success', count($rows).' employee records imported. Reporting lines remain unassigned until verified.');
     }
 
-    private function audit(School $school, int $actorId, string $action, int $employeeId): void
+    private function audit(School $school, int $actorId, string $action, int $employeeId, array $context = []): void
     {
         DB::table('school_audit_events')->insert([
             'school_id' => $school->id,
@@ -268,7 +294,7 @@ class SchoolEmployeeController extends Controller
             'action' => $action,
             'subject_type' => 'school_employee',
             'subject_id' => $employeeId,
-            'context' => json_encode(['employee_id' => $employeeId], JSON_THROW_ON_ERROR),
+            'context' => json_encode(['employee_id' => $employeeId, ...$context], JSON_THROW_ON_ERROR),
             'created_at' => now(),
         ]);
     }

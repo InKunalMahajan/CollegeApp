@@ -6,6 +6,7 @@ use App\Http\Controllers\SchoolPortalController;
 use App\Http\Controllers\SchoolDashboardController;
 use App\Http\Controllers\SchoolDepartmentController;
 use App\Http\Controllers\SchoolEmployeeController;
+use App\Http\Controllers\SchoolEmployeeProfileController;
 use App\Http\Controllers\SchoolPermissionMatrixController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
 use App\Http\Controllers\SchoolAcademicController;
@@ -53,6 +54,7 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('schools/{school}/employees')->group(function () {
         Route::get('/', [SchoolEmployeeController::class, 'index'])->middleware('school.can:school.employees.view')->name('school-employees.index');
+        Route::get('/{employee}', [SchoolEmployeeProfileController::class, 'show'])->middleware('school.can:school.employees.view')->name('school-employees.show');
         Route::post('/', [SchoolEmployeeController::class, 'store'])->middleware('school.can:school.employees.manage')->name('school-employees.store');
         Route::post('/import', [SchoolEmployeeController::class, 'import'])->middleware('school.can:school.employees.import')->name('school-employees.import');
         Route::put('/{employee}', [SchoolEmployeeController::class, 'update'])->middleware('school.can:school.employees.manage')->name('school-employees.update');
