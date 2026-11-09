@@ -10,6 +10,36 @@
 
     $schoolContext = request()->route('school');
     if ($schoolContext instanceof \App\Models\School) {
+        $contextRole = \App\Models\SchoolMembership::query()
+            ->where('school_id', $schoolContext->id)
+            ->where('user_id', $person->id)
+            ->value('role');
+        if (in_array($contextRole, ['school_admin', 'department_member'], true)) {
+            $assignedDepartments = \App\Models\SchoolDepartment::query()
+                ->where('school_id', $schoolContext->id)
+                ->when($contextRole !== 'school_admin', fn ($query) => $query->whereHas(
+                    'memberships',
+                    fn ($members) => $members->where('school_id', $schoolContext->id)
+                        ->where('user_id', $person->id)
+                        ->whereIn('role', \App\Models\SchoolDepartmentMembership::ROLES)
+                ))->orderBy('name')->get();
+            $departmentLinks = [[
+                'label' => 'All departments',
+                'icon' => 'layout-grid',
+                'url' => route('school-departments.index', $schoolContext),
+                'active' => request()->routeIs('school-departments.index'),
+            ]];
+            foreach ($assignedDepartments as $assignedDepartment) {
+                $departmentLinks[] = [
+                    'label' => $assignedDepartment->name,
+                    'icon' => 'school',
+                    'url' => route('school-departments.show', [$schoolContext, $assignedDepartment]),
+                    'active' => request()->routeIs('school-departments.show')
+                        && (string) (request()->route('department')?->id) === (string) $assignedDepartment->id,
+                ];
+            }
+            $nav[] = ['title' => 'Departments', 'icon' => 'layout-grid', 'items' => $departmentLinks];
+        }
         $membership = \App\Models\SchoolMembership::query()
             ->where('school_id', $schoolContext->id)->where('user_id', $person->id)
             ->whereIn('role', ['school_admin', 'auditor'])->first();
