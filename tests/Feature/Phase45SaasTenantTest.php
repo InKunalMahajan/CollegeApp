@@ -24,7 +24,7 @@ class Phase45SaasTenantTest extends TestCase
 
         $this->assertTrue($access->canManage($user, $a));
         $this->assertFalse($access->canManage($user, $b));
-        $this->assertSame([$a->id], $access->scopeToSchool(School::query(), $a)->pluck('id')->all());
+        $this->assertSame([$a->id], $access->scopeToSchool(SchoolMembership::query(), $a)->pluck('school_id')->all());
         $this->assertSame('active', $access->status($a));
         SaasTenant::create(['school_id' => $a->id, 'status' => 'suspended']);
         $this->assertSame('suspended', $access->status($a));
