@@ -127,6 +127,16 @@ SQL);
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            // SQLite drops columns by rebuilding tables in some Laravel/SQLite
+            // versions. Phase 29's existing triggers depend on school_employees,
+            // so a partial rollback could corrupt the schema. Fail closed.
+            throw new RuntimeException(
+                'SQLite Phase 34 rollback is blocked to preserve Phase 29 triggers. '.
+                'Restore a verified backup or use a reviewed forward migration.'
+            );
+        }
+
         if (DB::getDriverName() === 'mysql') {
             Schema::table('students', fn (Blueprint $table) =>
                 $table->dropForeign('student_campus_owner_fk'));
