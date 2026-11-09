@@ -30,6 +30,8 @@ A foreign campus that does not belong to the route's school returns 404. A legit
   - `campus_memberships(campus_id, user_id, role)` with unique membership and FKs.
   - Nullable `campus_id` to `school_employees` and `students`.
   - Scoped indexes for employee/student campus queries.
+  - On MySQL, unique `(school_id, id)` for campuses and composite foreign keys `(school_id, campus_id)` on employees/students.
+  - On SQLite, additive columns and ownership triggers for employees/students/campuses, retaining all existing Phase 29 employee triggers without table rebuilding.
 - Service `App\Services\CampusAccess` and `campus.can` middleware enforce known abilities and deny unknown permissions.
 - Organization admin manages campuses at `/schools/{school}/campuses`, with existing school membership authorization.
 - Campus admin uses `/schools/{school}/campuses/{campus}/workspace` and sees only records with both `school_id = school.id` and `campus_id = campus.id`.
@@ -46,7 +48,7 @@ This implementation introduces a **campus-scoped employee/student workspace** bu
 
 No existing employee/student is moved automatically. The new nullable campus IDs are not converted into a mandatory field. Existing school-wide import/update code continues to operate for organization administrators.
 
-The new employee/student `campus_id` columns have foreign keys referencing the campus table and application-level `school_id` checks. This phase **does not** introduce a composite `(school_id, campus_id)` foreign key on both legacy data tables, because safe MySQL/SQLite migration of existing tables must be separately reviewed and tested. Direct DB writers should not bypass the application service.
+The new employee/student `campus_id` columns are **database protected** against cross-organization references: composite `(school_id, campus_id)` foreign keys on MySQL, and equivalent insert/update and campus-owner triggers on SQLite. Direct DB writes that attach a TEACH student or employee to an unrelated school's campus must fail. SQLite intentionally avoids rebuilding the employee table because Phase 29 already created cross-table integrity triggers. A separate campus hierarchy migration is not necessary for this invariant.
 
 ## Steps for a TEACH organization administrator
 
@@ -79,3 +81,7 @@ php artisan serve
 If the branch exists locally, switch to it and run `git pull --ff-only`.
 
 **Release gate:** GitHub SQLite and MySQL CI, the full Laravel suite, staging backup/restore, manual browser tests with distinct organization/Mumbai/Pune accounts, and code review must pass before merge into any production branch.
+
+## Rollback precautions
+
+On MySQL, Phase 34 down() removes newly introduced FKs and columns. On SQLite the schema is connected to existing Phase 29 triggers; attempting a Laravel table rebuild while rolling back may break those triggers. Phase 34 therefore intentionally stops SQLite rollback and requires a verified database restoration or a separately tested forward migration plan. Do not run migrate:fresh on data you need to retain.
