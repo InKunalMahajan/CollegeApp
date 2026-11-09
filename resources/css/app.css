@@ -92,7 +92,7 @@
         --sa-ink: #0f172a;
         --sa-subtle: #64748b;
         --sa-border: #e2e8f0;
-        --sa-brand: #4f46e5;
+        --sa-brand: var(--app-primary, #4f46e5);
         --sa-surface: #fff;
         color: var(--sa-ink);
     }
@@ -207,5 +207,49 @@
         .schoolapp-page { max-width: none !important; }
         .schoolapp-page :where(section, article, .schoolapp-panel) { box-shadow: none; break-inside: avoid; }
         body { background: white !important; }
+    }
+}
+
+
+/* Phase 51: shared accessible appearance tokens. Colors and font family are
+ * rendered from validated allowlisted settings, never raw request CSS. */
+@layer base {
+    html { font-family: var(--app-font, ui-sans-serif, system-ui, sans-serif); }
+    body, .font-sans { font-family: var(--app-font, ui-sans-serif, system-ui, sans-serif); }
+    :where(a, button, summary, input, select, textarea):focus-visible {
+        outline-color: var(--app-primary, #4f46e5);
+        outline-width: 2px;
+        outline-offset: 2px;
+    }
+}
+@layer utilities {
+    .schoolapp-shell .bg-indigo-600 { background-color: var(--app-primary, #4f46e5); }
+    .schoolapp-shell .text-indigo-700 { color: var(--app-primary, #4f46e5); }
+    .schoolapp-shell .border-indigo-200 { border-color: color-mix(in srgb, var(--app-primary, #4f46e5) 32%, white); }
+    .schoolapp-shell .hover\\:bg-indigo-700:hover {
+        background-color: color-mix(in srgb, var(--app-primary, #4f46e5) 85%, black);
+    }
+    .schoolapp-shell .hover\\:text-indigo-700:hover {
+        color: var(--app-primary, #4f46e5);
+    }
+}
+@layer components {
+    .schoolapp-page :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea):focus {
+        border-color: var(--app-primary, #4f46e5);
+    }
+    html[data-density="compact"] .schoolapp-page :where(.schoolapp-panel, .schoolapp-page-card) {
+        padding-block: .75rem;
+    }
+    html[data-density="compact"] .schoolapp-page :where(table thead th, table tbody td) {
+        padding-block: .55rem;
+    }
+    html[data-density="compact"] .schoolapp-nav-link {
+        min-height: 2.2rem;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .schoolapp-page :where(*),
+        .schoolapp-shell :where(*) {
+            scroll-behavior: auto;
+        }
     }
 }
