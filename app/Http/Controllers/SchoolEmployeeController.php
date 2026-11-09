@@ -208,6 +208,10 @@ class SchoolEmployeeController extends Controller
             'managers' => $canManage
                 ? SchoolEmployee::where('school_id', $school->id)->orderBy('display_name')->get()
                 : collect(),
+            'archivedEmployees' => $canManage
+                ? SchoolEmployee::onlyTrashed()->where('school_id', $school->id)
+                    ->orderBy('display_name')->get()
+                : collect(),
         ]);
     }
 
@@ -265,6 +269,53 @@ class SchoolEmployeeController extends Controller
             ->with('success', 'Employee updated.');
     }
 
+
+    public function destroy(Request $request, School $school, SchoolEmployee $employee): RedirectResponse
+    {
+        abort_unless((int) $employee->school_id === (int) $school->id, 404);
+        $this->ensureAdmin($request, $school);
+
+        DB::transaction(function () use ($request, $school, $employee) {
+            $record = SchoolEmployee::query()->where('school_id', $school->id)
+                ->whereKey($employee->id)->lockForUpdate()->firstOrFail();
+
+            // A deleted manager must not leave invisible employees with
+            // reporting lines pointing to an archived person.
+            if (SchoolEmployee::query()->where('school_id', $school->id)
+                ->where('manager_id', $record->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'employee' => 'Reassign this employee\'s direct reportees before archiving.',
+                ]);
+            }
+
+            $record->delete();
+            $this->audit($school, $request->user()->id, 'employee.archived', $record->id, [
+                'fields' => ['deleted_at'],
+            ]);
+        });
+
+        return redirect()->route('school-employees.index', $school)
+            ->with('success', 'Employee archived. Their record and audit history are retained.');
+    }
+
+    public function restore(Request $request, School $school, int $employee): RedirectResponse
+    {
+        $this->ensureAdmin($request, $school);
+
+        DB::transaction(function () use ($request, $school, $employee) {
+            $record = SchoolEmployee::withTrashed()->where('school_id', $school->id)
+                ->where('id', $employee)->lockForUpdate()->firstOrFail();
+
+            abort_unless($record->trashed(), 404);
+            $record->restore();
+            $this->audit($school, $request->user()->id, 'employee.restored', $record->id, [
+                'fields' => ['deleted_at'],
+            ]);
+        });
+
+        return redirect()->route('school-employees.index', $school)
+            ->with('success', 'Employee restored.');
+    }
 
     public function import(Request $request, School $school): RedirectResponse
     {
@@ -348,9 +399,14 @@ class SchoolEmployeeController extends Controller
 
         DB::transaction(function () use ($rows, $school, $request) {
             foreach ($rows as $row) {
-                $existing = SchoolEmployee::query()
+                $existing = SchoolEmployee::withTrashed()
                     ->where('school_id', $school->id)
                     ->where('employee_number', $row['employee_number'])->first();
+                if ($existing && $existing->trashed()) {
+                    throw ValidationException::withMessages([
+                        'employee_csv' => 'CSV contains an archived employee number. Restore the employee before importing.',
+                    ]);
+                }
                 if ($existing) {
                     // Keep confirmed manager relationships and assigned department links.
                     $existing->update(collect($row)->except(['school_id', 'manager_id'])->all());
