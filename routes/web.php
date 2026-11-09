@@ -5,6 +5,7 @@ use App\Http\Controllers\SchoolSecurityController;
 use App\Http\Controllers\SchoolPortalController;
 use App\Http\Controllers\SchoolDashboardController;
 use App\Http\Controllers\SchoolDepartmentController;
+use App\Http\Controllers\SchoolEmployeeController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
 use App\Http\Controllers\SchoolAcademicController;
 use App\Http\Controllers\SchoolAdmissionController;
@@ -45,6 +46,13 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
     Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
+    Route::prefix('schools/{school}/employees')->group(function () {
+        Route::get('/', [SchoolEmployeeController::class, 'index'])->name('school-employees.index');
+        Route::post('/', [SchoolEmployeeController::class, 'store'])->name('school-employees.store');
+        Route::post('/import', [SchoolEmployeeController::class, 'import'])->name('school-employees.import');
+        Route::put('/{employee}', [SchoolEmployeeController::class, 'update'])->name('school-employees.update');
+    });
+
     Route::prefix('schools/{school}/departments')->group(function () {
         Route::get('/', [SchoolDepartmentController::class, 'index'])->name('school-departments.index');
         Route::get('/{department}', [SchoolDepartmentController::class, 'show'])->name('school-departments.show');
