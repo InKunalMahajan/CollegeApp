@@ -17,7 +17,7 @@
             <input id="email" type="email" name="email" required maxlength="255" value="{{ old('email') }}" autocomplete="off" class="w-full rounded-lg border border-slate-300 px-4 py-2.5"></div>
         <div><label for="role" class="mb-2 block text-sm font-semibold">Account role</label>
             <select id="role" name="role" required class="w-full rounded-lg border border-slate-300 px-4 py-2.5">
-                @foreach (['student' => 'Student', 'teacher' => 'Teacher', 'staff' => 'Staff', 'admin' => 'Administrator'] as $value => $label)
+                @foreach (['student' => 'Student', 'teacher' => 'Teacher', 'staff' => 'Staff'] as $value => $label)
                     <option value="{{ $value }}" @selected(old('role', 'student') === $value)>{{ $label }}</option>
                 @endforeach
             </select></div>
