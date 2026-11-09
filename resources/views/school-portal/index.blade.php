@@ -5,6 +5,7 @@
 <section class="mb-6 rounded-xl border border-slate-200 bg-white p-6">
 <h2 class="text-xl font-semibold">{{ $school->name }}</h2>
 <p class="mt-2 text-sm text-slate-600">Read-only school-scoped records. Membership is required. Each list shows up to 100 entries.</p>
+<a class="mt-3 mr-4 inline-flex items-center gap-2 text-sm font-semibold text-indigo-700" href="{{ route('school-dashboard.index',$school) }}"><x-ui.icon name="layout-dashboard"/> School dashboard</a>
 <a class="mt-3 inline-block text-sm font-semibold text-indigo-700" href="{{ route('school-security.report',$school) }}">School security summary</a>
 </section>
 <section class="grid gap-6 lg:grid-cols-2">

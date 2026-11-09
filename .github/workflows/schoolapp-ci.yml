@@ -1,0 +1,181 @@
+name: SchoolApp CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: schoolapp-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php-sqlite:
+    name: Laravel tests (SQLite, PHP 8.4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, pdo_sqlite, sqlite3, pdo_mysql
+          coverage: none
+      - name: Verify dependencies
+        run: composer validate --no-check-publish
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Create local testing environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+      - name: Install Node for Blade/Vite views
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build Vite assets required by feature tests
+        run: |
+          npm ci
+          npm run build
+          test -s public/build/manifest.json
+      - name: Check release asset preflight
+        run: php artisan school:release-check
+      - name: Run SQLite feature and unit tests
+        run: php artisan test --no-ansi
+
+  php-mysql:
+    name: Laravel integration (MySQL 8.4, PHP 8.4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci_root_password
+          MYSQL_DATABASE: schoolapp_ci
+          MYSQL_USER: schoolapp_ci
+          MYSQL_PASSWORD: ci_only_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pci_root_password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: schoolapp_ci
+      DB_USERNAME: schoolapp_ci
+      DB_PASSWORD: ci_only_password
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, pdo_mysql, pdo_sqlite, sqlite3
+          coverage: none
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Create testing environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+      - name: Install Node for Blade/Vite views
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Build Vite assets required by feature tests
+        run: |
+          npm ci
+          npm run build
+          test -s public/build/manifest.json
+      - name: Check release asset preflight
+        run: php artisan school:release-check
+      - name: Run MySQL feature and unit tests
+        run: vendor/bin/phpunit --configuration phpunit.mysql.xml --colors=never
+
+  frontend:
+    name: Tailwind and Vite build (Node 22)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Reproducible npm install
+        run: npm ci
+      - name: Build production assets
+        run: npm run build
+      - name: Verify build artifact
+        run: test -s public/build/manifest.json
+
+  php-quality:
+    name: PHP syntax and formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, pdo_sqlite
+          coverage: none
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Check PHP syntax
+        run: |
+          find app bootstrap config database routes tests -name '*.php' -type f -print0 |
+            xargs -0 -n1 php -l
+      - name: Enforce Pint formatting for Phase 23 CI test
+        run: vendor/bin/pint --test tests/Feature/Phase23CiSmokeTest.php
+
+  dependency-audit:
+    name: Dependency audit (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - name: Composer security audit
+        run: composer audit --locked --no-interaction
+      - name: Install Node
+        if: always()
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: npm audit of production dependencies
+        if: always()
+        run: npm audit --omit=dev --audit-level=high

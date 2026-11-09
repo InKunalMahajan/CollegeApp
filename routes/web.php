@@ -3,6 +3,7 @@
 use App\Http\Controllers\AcademicSetupController;
 use App\Http\Controllers\SchoolSecurityController;
 use App\Http\Controllers\SchoolPortalController;
+use App\Http\Controllers\SchoolDashboardController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
 use App\Http\Controllers\SchoolAcademicController;
 use App\Http\Controllers\SchoolAdmissionController;
@@ -47,6 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('school.member:school_admin,auditor')->group(function () {
         Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->name('school-security.report');
         Route::get('/schools/{school}/portal', [SchoolPortalController::class, 'index'])->name('school-portal.index');
+        Route::get('/schools/{school}/dashboard', [SchoolDashboardController::class, 'index'])->name('school-dashboard.index');
+        Route::get('/schools/{school}/dashboard/export', [SchoolDashboardController::class, 'export'])->name('school-dashboard.export');
     });
 
     Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
