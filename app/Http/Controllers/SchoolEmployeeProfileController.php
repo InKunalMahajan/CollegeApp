@@ -26,6 +26,13 @@ class SchoolEmployeeProfileController extends Controller
         }
 
         $employee->load(['department', 'manager']);
+        // Department-only viewers must not see an unrelated manager's identity.
+        if (! $canManage && ! $access->can($request->user(), $school, 'school.security.view')
+            && $employee->manager
+            && ! in_array($employee->manager->school_department_id,
+                $access->assignedDepartmentIds($request->user(), $school), true)) {
+            $employee->unsetRelation('manager');
+        }
         $history = $canManage
             ? SchoolAuditEvent::query()
                 ->where('school_id', $school->id)
