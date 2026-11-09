@@ -6,19 +6,79 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-}
-
-@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji';
     --color-brand-50: #eef2ff;
     --color-brand-600: #4f46e5;
     --color-brand-700: #4338ca;
 }
+
 @layer base {
     body { color: #0f172a; }
-    :where(a, button, input, select, textarea):focus-visible {
+    :where(a, button, summary, input, select, textarea):focus-visible {
         outline: 2px solid #4f46e5;
         outline-offset: 2px;
+    }
+    :where(summary)::-webkit-details-marker { display: none; }
+}
+
+@layer components {
+    .schoolapp-shell {
+        --schoolapp-sidebar-width: 272px;
+        display: block;
+        background: #f8fafc;
+    }
+    .schoolapp-sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        width: min(88vw, 300px);
+        background: #fff;
+        border-right: 1px solid #e2e8f0;
+        box-shadow: 20px 0 50px rgba(15, 23, 42, .08);
+        transform: translateX(-105%);
+        transition: transform .22s ease;
+    }
+    .schoolapp-mobile-open .schoolapp-sidebar { transform: translateX(0); }
+    .schoolapp-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: rgb(15 23 42 / 52%);
+    }
+    .schoolapp-header { min-width: 0; }
+    .schoolapp-nav-link[aria-current="page"] { font-weight: 700; }
+    .schoolapp-nav-group > summary { user-select: none; }
+    .schoolapp-sidebar-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+    .schoolapp-profile > summary { user-select: none; }
+    @media (min-width: 1024px) {
+        .schoolapp-sidebar {
+            width: var(--schoolapp-sidebar-width);
+            box-shadow: none;
+            transform: none;
+        }
+        .schoolapp-main {
+            margin-left: var(--schoolapp-sidebar-width);
+            transition: margin-left .22s ease;
+        }
+        .schoolapp-collapsed { --schoolapp-sidebar-width: 76px; }
+        .schoolapp-collapsed .schoolapp-sidebar-label { display: none; }
+        .schoolapp-collapsed .schoolapp-sidebar-scroll { padding-inline: .5rem; }
+        .schoolapp-collapsed .schoolapp-nav-group > summary {
+            justify-content: center;
+            padding-inline: .5rem;
+            font-size: 0;
+        }
+        .schoolapp-collapsed .schoolapp-nav-items { padding-top: 0; }
+        .schoolapp-collapsed .schoolapp-nav-link {
+            justify-content: center;
+            padding-inline: .5rem;
+        }
+        .schoolapp-collapsed .schoolapp-sidebar > div:first-child { padding-inline: 1rem; }
+        .schoolapp-collapsed .schoolapp-nav-group { margin-bottom: .2rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .schoolapp-sidebar, .schoolapp-main { transition: none; }
     }
 }
