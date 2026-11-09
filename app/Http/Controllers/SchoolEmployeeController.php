@@ -59,7 +59,21 @@ class SchoolEmployeeController extends Controller
             'location' => ['nullable', 'string', 'max:100'],
             'employment_status' => ['sometimes', 'required', Rule::in(SchoolEmployee::STATUSES)],
             'employment_type' => ['sometimes', 'nullable', Rule::in(SchoolEmployee::TYPES)],
-            'joined_on' => ['sometimes', 'nullable', 'date', 'before_or_equal:today'],
+            'joined_on' => [
+                'sometimes',
+                'nullable',
+                'date_format:Y-m-d',
+                // Compare validated ISO calendar dates directly. Laravel's
+                // before_or_equal rule calls getTimestamp(), which overflows
+                // for dates like 2099-01-01 on some Windows PHP builds.
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (is_string($value)
+                        && preg_match('/^\\d{4}-\\d{2}-\\d{2}$/D', $value)
+                        && $value > now()->toDateString()) {
+                        $fail('The joining date cannot be in the future.');
+                    }
+                },
+            ],
             'work_email' => [
                 'sometimes', 'nullable', 'email', 'max:255',
                 Rule::unique('school_employees', 'work_email')
