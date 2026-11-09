@@ -6,18 +6,20 @@ use Illuminate\Validation\Rule;
 
 class AppearanceSettings
 {
-    public static function rules(): array
+    public static function rules(bool $required = true): array
     {
+        $presence = $required ? 'required' : 'sometimes';
+
         return [
-            'primary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/', function ($attribute, $value, $fail) {
+            'primary_color' => [$presence, 'regex:/^#[0-9A-Fa-f]{6}$/', function ($attribute, $value, $fail) {
                 if (is_string($value) && preg_match('/^#[0-9A-Fa-f]{6}$/', $value)
                     && self::whiteTextContrast($value) < 4.5) {
                     $fail('Choose a darker primary color for readable white button text (minimum 4.5:1 contrast).');
                 }
             }],
-            'font_family' => ['required', Rule::in(array_keys(config('appearance.fonts')))],
-            'font_size' => ['required', 'integer', Rule::in(config('appearance.sizes'))],
-            'density' => ['required', Rule::in(config('appearance.densities'))],
+            'font_family' => [$presence, Rule::in(array_keys(config('appearance.fonts')))],
+            'font_size' => [$presence, 'integer', Rule::in(config('appearance.sizes'))],
+            'density' => [$presence, Rule::in(config('appearance.densities'))],
         ];
     }
 
