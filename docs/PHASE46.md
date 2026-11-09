@@ -1,0 +1,3 @@
+# Phase 46 — SaaS onboarding
+
+Signed-in users request an organization; requests are rate-limited and visible only to their applicant. A Website Owner reviews requests and alone can create an organization, its `saas_tenants` row, and a scoped `school_admin` membership for the requesting account. Duplicate/pending requests are rejected and approvals are transactional with row locks. Existing TEACH data is untouched. This is an **authenticated approval process**, not anonymous public sign-up, email verification, KYC, domain onboarding or automatic paid subscription provisioning. No payment is accepted. Run `php artisan test --filter=Phase46SaasOnboardingTest` and all CI checks.
