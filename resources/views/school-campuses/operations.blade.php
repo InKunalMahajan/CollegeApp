@@ -3,6 +3,7 @@
 @section('heading', 'Campus Operations')
 @section('content')
 <x-ui.page-heading :title="$campus->name.' · Operations'" :description="$school->name.' · Read-only, campus-scoped metrics'"/>
+<p class="mb-3"><a class="text-sm font-semibold text-indigo-700 hover:underline" href="{{ route('campus.enrollments.index', [$school, $campus]) }}">Manage campus enrollments →</a></p>
 <div class="mb-5">
     <a class="text-sm font-semibold text-indigo-700 hover:underline" href="{{ route('campus-workspace.index', [$school, $campus]) }}">← Back to campus workspace</a>
 </div>

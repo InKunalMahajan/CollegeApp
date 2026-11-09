@@ -12,6 +12,8 @@ class CampusAccess
     private const ABILITIES = [
         'campus.dashboard.view',
         'campus.operations.view',
+        'campus.enrollments.view',
+        'campus.enrollments.manage',
         'campus.employees.view',
         'campus.employees.manage',
         'campus.students.view',
