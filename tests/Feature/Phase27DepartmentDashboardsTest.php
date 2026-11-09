@@ -84,7 +84,7 @@ class Phase27DepartmentDashboardsTest extends TestCase
 
         $this->actingAs($staff)
             ->get(route('school-departments.show', [$a, $skills]))->assertOk()
-            ->assertSee('Department staff')
+            ->assertSee('Department Staff')
             ->assertDontSee('Save role access');
 
         $this->get(route('school-departments.show', [$a, $finance]))->assertForbidden();
