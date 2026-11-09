@@ -17,6 +17,7 @@ use App\Http\Controllers\CampusFinanceLibraryController;
 use App\Http\Controllers\WebsiteOwnerUserController;
 use App\Http\Controllers\WebsiteOwnerDashboardController;
 use App\Http\Controllers\SaasOnboardingController;
+use App\Http\Controllers\SaasPlanController;
 use App\Http\Controllers\OrganizationUserController;
 use App\Http\Controllers\CampusUserController;
 use App\Http\Controllers\SchoolEmployeeProfileController;
@@ -64,6 +65,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/saas/onboarding', [SaasOnboardingController::class, 'index'])->name('saas.onboarding.index');
     Route::post('/saas/onboarding', [SaasOnboardingController::class, 'store'])->middleware('throttle:3,60')->name('saas.onboarding.store');
     Route::get('/website-owner/onboarding', [SaasOnboardingController::class, 'review'])->middleware('website.owner')->name('saas.onboarding.review');
+    Route::get('/website-owner/plans', [SaasPlanController::class, 'index'])->middleware('website.owner')->name('saas.plans.index');
+    Route::post('/website-owner/plans', [SaasPlanController::class, 'store'])->middleware('website.owner')->name('saas.plans.store');
+    Route::post('/website-owner/subscriptions', [SaasPlanController::class, 'assign'])->middleware('website.owner')->name('saas.plans.assign');
     Route::post('/website-owner/onboarding/{onboarding}/approve', [SaasOnboardingController::class, 'approve'])->middleware('website.owner')->name('saas.onboarding.approve');
     Route::post('/website-owner/onboarding/{onboarding}/reject', [SaasOnboardingController::class, 'reject'])->middleware('website.owner')->name('saas.onboarding.reject');
     // Explicit platform owner routes must not depend on legacy global admin
