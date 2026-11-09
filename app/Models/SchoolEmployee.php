@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SchoolEmployee extends Model
 {
+    use SoftDeletes;
+
     public const STATUSES = ['active', 'on_leave', 'inactive', 'separated'];
 
     public const TYPES = ['full_time', 'part_time', 'contract', 'intern'];
@@ -20,7 +23,7 @@ class SchoolEmployee extends Model
     protected $fillable = [
         'school_id', 'employee_number', 'display_name', 'job_title',
         'department_label', 'location', 'school_department_id', 'manager_id',
-        'employment_status', 'employment_type', 'joined_on', 'work_email',
+        'employment_status', 'employment_type', 'joined_on', 'work_email', 'campus_id',
     ];
 
     public function school(): BelongsTo

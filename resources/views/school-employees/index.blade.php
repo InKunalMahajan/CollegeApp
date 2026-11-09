@@ -1,73 +1,147 @@
 @extends('layouts.app')
-@section('title', 'Employee Organization Tree')
-@section('heading', 'Employee Organization Tree')
+@section('title', 'Employee Dashboard')
+@section('heading', 'Employee Dashboard')
 @section('content')
-<x-ui.page-heading :title="$school->name.' — Employees'" description="View verified reporting lines. Employees without an assigned manager appear as separate top-level nodes.">
+<x-ui.page-heading :title="$school->name.' — Employee Dashboard'" description="Explore verified employee records, department assignments and reporting relationships. All counts follow your school access.">
     <x-slot:actions>
-        <a href="{{ route('school-departments.index', $school) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700"><x-ui.icon name="layout-grid"/> Departments</a>
+        @if($canViewDepartments)
+            <a href="{{ route('school-departments.index', $school) }}" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><x-ui.icon name="layout-grid"/> Departments</a>
+        @endif
     </x-slot:actions>
 </x-ui.page-heading>
 @if($errors->any())
     <x-ui.alert type="error" class="mb-5">{{ $errors->first() }}</x-ui.alert>
 @endif
 
-<div class="mb-6 grid gap-4 sm:grid-cols-2">
-    <x-ui.card title="Employees visible to you">
-        <p class="text-3xl font-bold tabular-nums">{{ $employeeCount }}</p>
-        <p class="mt-2 text-xs text-slate-500">School- and department-scoped visibility</p>
-    </x-ui.card>
-    <x-ui.card title="Reporting structure">
-        <p class="text-sm text-slate-600">The chart shows only explicitly assigned managers. Reportee counts in imported CSVs do not prove who reports to whom.</p>
-    </x-ui.card>
-</div>
-
-<form method="GET" action="{{ route('school-employees.index', $school) }}" class="mb-5 flex flex-wrap items-end gap-3">
-    <div><label for="employee-status-filter" class="mb-1 block text-sm">Employment status</label>
-        <select id="employee-status-filter" name="employment_status">
-            <option value="">All statuses</option>
-            @foreach(\App\Models\SchoolEmployee::STATUSES as $status)
-                <option value="{{ $status }}" @selected($statusFilter === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
-            @endforeach
-        </select>
+<section aria-label="Employee overview" class="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm font-medium text-slate-600">Total employees visible</p>
+        <p class="mt-2 text-3xl font-bold tabular-nums text-slate-900">{{ $totalVisible }}</p>
+        <p class="mt-1 text-xs text-slate-500">Your authorized school scope</p>
     </div>
-    <button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Filter employees</button>
-    <a href="{{ route('school-employees.index', $school) }}" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold">Reset</a>
-</form>
-<x-ui.card title="Organization tree" description="Expand a manager to view their confirmed direct reportees.">
-    @php
-        $groups = collect($items)->groupBy(fn ($item) => (string) ($item['manager_id'] ?? 0));
-        $roots = $groups->get('0', collect());
-    @endphp
-    @if($items)
-        <div class="space-y-3" aria-label="Employee reporting hierarchy">
-            @foreach($roots as $node)
-                @include('school-employees.node', ['node' => $node, 'groups' => $groups, 'level' => 0])
-            @endforeach
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm font-medium text-slate-600">Active employees</p>
+        <p class="mt-2 text-3xl font-bold tabular-nums text-slate-900">{{ $statusCounts->get('active', 0) }}</p>
+        <p class="mt-1 text-xs text-slate-500">On leave: {{ $statusCounts->get('on_leave', 0) }}</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm font-medium text-slate-600">Assigned to departments</p>
+        <p class="mt-2 text-3xl font-bold tabular-nums text-slate-900">{{ $assignedCount }}</p>
+        <p class="mt-1 text-xs text-slate-500">Of {{ $totalVisible }} visible employees</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm font-medium text-slate-600">Linked to a manager</p>
+        <p class="mt-2 text-3xl font-bold tabular-nums text-slate-900">{{ $managerLinkedCount }}</p>
+        <p class="mt-1 text-xs text-slate-500">Verified manager assignment recorded</p>
+    </div>
+</section>
+
+<x-ui.card title="Find employees" description="Search by name, employee number or job title. Filters and results are limited to your authorized employees.">
+    <form method="GET" action="{{ route('school-employees.index', $school) }}" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="sm:col-span-2 xl:col-span-2">
+            <label for="employee-search" class="mb-1 block text-sm font-semibold text-slate-700">Search employees</label>
+            <input id="employee-search" name="search" type="search" value="{{ $search }}" maxlength="100" class="w-full" placeholder="Name, employee number or job title">
         </div>
-    @else
-        <p class="schoolapp-empty">No employee records are available to your account.</p>
-    @endif
+        <div>
+            <label for="employee-status-filter" class="mb-1 block text-sm font-semibold text-slate-700">Employment status</label>
+            <select id="employee-status-filter" name="employment_status" class="w-full">
+                <option value="">All statuses</option>
+                @foreach(\App\Models\SchoolEmployee::STATUSES as $status)
+                    <option value="{{ $status }}" @selected($statusFilter === $status)>{{ ucwords(str_replace('_', ' ', $status)) }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="employee-department-filter" class="mb-1 block text-sm font-semibold text-slate-700">Department</label>
+            <select id="employee-department-filter" name="school_department_id" class="w-full">
+                <option value="">All accessible departments</option>
+                @foreach($departments as $department)
+                    <option value="{{ $department->id }}" @selected((string) $departmentFilter === (string) $department->id)>{{ $department->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="employee-location-filter" class="mb-1 block text-sm font-semibold text-slate-700">Location</label>
+            <select id="employee-location-filter" name="location" class="w-full">
+                <option value="">All locations</option>
+                @foreach($locations as $location)
+                    <option value="{{ $location }}" @selected($locationFilter === $location)>{{ $location }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="flex flex-wrap items-end gap-2 sm:col-span-2 xl:col-span-3">
+            <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"><x-ui.icon name="search"/> Apply filters</button>
+            <a href="{{ route('school-employees.index', $school) }}" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Clear all</a>
+        </div>
+    </form>
+    <p class="mt-4 text-sm text-slate-600" role="status">{{ $filteredCount }} matching employee{{ $filteredCount === 1 ? '' : 's' }} out of {{ $totalVisible }} visible.</p>
 </x-ui.card>
 
-<x-ui.card class="mt-6" title="Employee directory" description="Open a profile for employment details and verified organizational information.">
+<div class="mt-6 grid items-start gap-5 xl:grid-cols-3">
+    <div class="xl:col-span-2">
+        <x-ui.card title="Reporting structure" description="Direct reportees are derived only from confirmed manager links within the filtered, visible employees.">
+            @if(! $treeAvailable)
+                <p class="text-sm text-slate-600">The tree is hidden for more than 250 matching employees to keep this page responsive. Use the searchable, paginated directory below.</p>
+            @elseif($items)
+                @php
+                    $groups = collect($items)->groupBy(fn ($item) => (string) ($item['manager_id'] ?? 0));
+                    $roots = $groups->get('0', collect());
+                @endphp
+                <div class="max-h-[34rem] space-y-3 overflow-y-auto pr-1" aria-label="Employee reporting hierarchy">
+                    @foreach($roots as $node)
+                        @include('school-employees.node', ['node' => $node, 'groups' => $groups, 'level' => 0])
+                    @endforeach
+                </div>
+            @else
+                <p class="text-sm text-slate-500">No reporting relationships match your filters.</p>
+            @endif
+        </x-ui.card>
+    </div>
+    <div>
+        <x-ui.card title="Department overview" description="Counts reflect only employees visible to your account.">
+            <div class="space-y-3">
+                @forelse($departments as $department)
+                    @php $count = (int) $departmentCounts->get($department->id, 0); @endphp
+                    <div class="rounded-lg border border-slate-100 p-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="truncate text-sm font-semibold text-slate-800">{{ $department->name }}</span>
+                            <span class="text-sm font-semibold tabular-nums text-slate-700">{{ $count }}</span>
+                        </div>
+                        <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                            <div class="h-full rounded-full bg-indigo-500" style="width: {{ $totalVisible ? round($count / $totalVisible * 100, 1) : 0 }}%"></div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm text-slate-500">No departments are available to your account.</p>
+                @endforelse
+                <p class="text-xs text-slate-500">Employees without a SchoolApp department assignment: {{ $totalVisible - $assignedCount }}.</p>
+            </div>
+        </x-ui.card>
+    </div>
+</div>
+
+<x-ui.card class="mt-6" title="Employee directory" description="Browse employees and open individual profiles. 20 rows per page.">
     <div class="overflow-x-auto">
-        <table class="min-w-[680px] w-full text-left text-sm">
-            <thead><tr><th>Employee</th><th>Job title</th><th>Department</th><th>Status</th><th>Profile</th></tr></thead>
+        <table class="min-w-[680px] w-full text-left text-sm" aria-label="Employee directory">
+            <thead><tr><th scope="col">Employee</th><th scope="col">Job title</th><th scope="col">Department</th><th scope="col">Status</th><th scope="col">Profile</th></tr></thead>
             <tbody>
-                @forelse($items as $person)
+                @forelse($directory as $person)
                     <tr>
-                        <td>{{ $person['name'] }}<div class="text-xs text-slate-500">{{ $person['number'] }}</div></td>
-                        <td>{{ $person['title'] }}</td>
-                        <td>{{ $person['department'] }}</td>
-                        <td><x-ui.badge>{{ ucwords(str_replace('_', ' ', $person['status'])) }}</x-ui.badge></td>
-                        <td><a class="font-semibold text-indigo-700 underline-offset-2 hover:underline" href="{{ route('school-employees.show', [$school, $person['id']]) }}">View profile</a></td>
+                        <td><span class="font-semibold text-slate-900">{{ $person->display_name }}</span><div class="text-xs text-slate-500">{{ $person->employee_number }}</div></td>
+                        <td>{{ $person->job_title }}</td>
+                        <td>{{ $person->department_label ?: ($person->department?->name ?? 'Unassigned') }}</td>
+                        <td><x-ui.badge>{{ ucwords(str_replace('_', ' ', $person->employment_status)) }}</x-ui.badge></td>
+                        <td><a class="font-semibold text-indigo-700 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-indigo-600" href="{{ route('school-employees.show', [$school, $person]) }}">View profile</a></td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center text-slate-500">No employees match this filter.</td></tr>
+                    <tr><td colspan="5" class="py-8 text-center text-slate-500">No employees match these filters. Clear the filters to see more results.</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+    @if($directory->hasPages())
+        <div class="mt-5">{{ $directory->links() }}</div>
+    @endif
 </x-ui.card>
 
 @if($canManage)
@@ -118,9 +192,28 @@
                     <div><label class="block text-sm" for="edit-email-{{ $employee->id }}">Work email</label><input id="edit-email-{{ $employee->id }}" type="email" name="work_email" maxlength="255" value="{{ $employee->work_email }}" class="w-full"></div>
                     <div class="sm:col-span-2"><button type="submit" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white">Save employee</button></div>
                 </form>
+                <form method="POST" action="{{ route('school-employees.destroy', [$school, $employee]) }}" class="mt-3" onsubmit="return confirm('Archive this employee? You can restore the record later.');">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50">Archive employee</button>
+                </form>
             </details>
         @empty
             <p class="text-sm text-slate-500">No employee records yet.</p>
+        @endforelse
+    </div>
+</x-ui.card>
+<x-ui.card class="mt-6" title="Archived employees" description="Archived records are hidden from the directory but can be restored by school administrators.">
+    <div class="space-y-3">
+        @forelse($archivedEmployees as $archived)
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div><strong>{{ $archived->display_name }}</strong><p class="text-xs text-slate-500">{{ $archived->employee_number }} · {{ $archived->job_title }}</p></div>
+                <form method="POST" action="{{ route('school-employees.restore', [$school, $archived->id]) }}">
+                    @csrf
+                    <button type="submit" class="rounded-xl border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-700">Restore employee</button>
+                </form>
+            </div>
+        @empty
+            <p class="text-sm text-slate-500">No archived employees.</p>
         @endforelse
     </div>
 </x-ui.card>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SchoolMembership;
+use App\Models\CampusMembership;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -16,6 +17,11 @@ class MySchoolsController extends Controller
             ->whereIn('role',['school_admin','auditor','department_member'])
             ->orderBy('school_id')->get();
 
-        return view('school-admin.my-schools',compact('memberships'));
+        $campusMemberships = CampusMembership::query()->with('campus.school')
+            ->where('user_id', $request->user()->id)
+            ->where('role', 'campus_admin')
+            ->orderBy('campus_id')->get();
+
+        return view('school-admin.my-schools', compact('memberships', 'campusMemberships'));
     }
 }

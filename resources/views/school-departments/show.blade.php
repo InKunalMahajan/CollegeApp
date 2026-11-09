@@ -28,6 +28,24 @@
     <p class="mt-4 text-xs text-slate-500">Department head, staff and viewer roles are currently read-only. Future department actions must have their own server-side policies.</p>
 </x-ui.card>
 @if($canManage)
+<div class="mt-6 grid items-start gap-5 lg:grid-cols-2">
+    <x-ui.card title="Edit department" description="School administrators can change the name, unique code, and description.">
+        <form method="POST" action="{{ route('school-departments.update', [$school, $department]) }}" class="mt-4 grid gap-4">
+            @csrf @method('PUT')
+            <div><label for="edit-department-name" class="mb-1 block text-sm">Department name</label><input id="edit-department-name" name="name" required maxlength="120" value="{{ old('name', $department->name) }}" class="w-full"></div>
+            <div><label for="edit-department-code" class="mb-1 block text-sm">Department code</label><input id="edit-department-code" name="code" required maxlength="32" pattern="[A-Za-z0-9_-]+" value="{{ old('code', $department->code) }}" class="w-full"></div>
+            <div><label for="edit-department-description" class="mb-1 block text-sm">Description</label><textarea id="edit-department-description" name="description" maxlength="1000" rows="3" class="w-full">{{ old('description', $department->description) }}</textarea></div>
+            <button type="submit" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white">Save department</button>
+        </form>
+    </x-ui.card>
+    <x-ui.card title="Delete empty department" description="Deletion is blocked while any employee (including archived employees) or department membership still references this department.">
+        <p class="text-sm text-slate-600">Remove employee assignments and role access before deleting. This operation cannot be undone automatically.</p>
+        <form method="POST" action="{{ route('school-departments.destroy', [$school, $department]) }}" class="mt-4" onsubmit="return confirm('Permanently delete this empty department?');">
+            @csrf @method('DELETE')
+            <button type="submit" class="rounded-xl border border-rose-200 px-5 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-50">Delete department</button>
+        </form>
+    </x-ui.card>
+</div>
 <div class="mt-6 grid gap-5 lg:grid-cols-2">
     <x-ui.card title="Assign department role" description="Enter an existing SchoolApp account email. A school membership is provisioned for this department when needed.">
         <form method="POST" action="{{ route('school-departments.assign', [$school, $department]) }}" class="mt-4 grid gap-4">
