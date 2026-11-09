@@ -9,7 +9,7 @@
 @if ($errors->has('delete'))
     <div role="alert" class="mb-5 rounded-lg bg-rose-50 p-4 text-sm text-rose-700">{{ $errors->first('delete') }}</div>
 @endif
-<div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+<div class="schoolapp-table-wrap overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
 <table class="w-full min-w-[600px] text-left text-sm">
 <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
 <tr><th class="px-5 py-4">ID</th>
