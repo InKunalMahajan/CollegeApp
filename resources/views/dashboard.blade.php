@@ -16,23 +16,23 @@
 
 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
     @if($canViewStudents)
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <p class="text-sm font-medium text-slate-500">Total students</p>
             <p class="mt-3 text-3xl font-bold tracking-tight">{{ number_format($students) }}</p>
             <p class="mt-2 text-xs text-slate-400">All admissions</p>
         </div>
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <p class="text-sm font-medium text-slate-500">Active students</p>
             <p class="mt-3 text-3xl font-bold tracking-tight">{{ number_format($active) }}</p>
             <p class="mt-2 text-xs text-slate-400">Currently active</p>
         </div>
     @endif
-    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <p class="text-sm font-medium text-slate-500">Courses</p>
         <p class="mt-3 text-3xl font-bold tracking-tight">{{ number_format($courses) }}</p>
         <p class="mt-2 text-xs text-slate-400">Registered programs</p>
     </div>
-    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <p class="text-sm font-medium text-slate-500">Departments</p>
         <p class="mt-3 text-3xl font-bold tracking-tight">{{ number_format($departments) }}</p>
         <p class="mt-2 text-xs text-slate-400">Academic departments</p>
@@ -49,7 +49,7 @@
             </div>
             <a href="{{ route('students.index') }}" class="text-sm font-semibold text-indigo-700 hover:underline">View all students</a>
         </div>
-        <div class="overflow-x-auto">
+        <div class="schoolapp-table-wrap overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <tr><th scope="col" class="px-5 py-3">Admission</th><th scope="col" class="px-5 py-3">Student</th><th scope="col" class="px-5 py-3">Course</th><th scope="col" class="px-5 py-3">Status</th></tr>
@@ -69,7 +69,7 @@
             </table>
         </div>
     </section>
-    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm" aria-labelledby="quick-actions-heading">
+    <section class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-6 shadow-sm" aria-labelledby="quick-actions-heading">
         <h3 id="quick-actions-heading" class="text-base font-semibold">Quick actions</h3>
         <p class="mt-1 text-sm text-slate-500">Common administration tasks.</p>
         <div class="mt-5 space-y-3">
