@@ -19,7 +19,7 @@ class MySchoolsController extends Controller
 
         $campusMemberships = CampusMembership::query()->with('campus.school')
             ->where('user_id', $request->user()->id)
-            ->where('role', 'campus_admin')
+            ->whereIn('role', ['campus_admin','campus_member','campus_viewer'])
             ->orderBy('campus_id')->get();
 
         return view('school-admin.my-schools', compact('memberships', 'campusMemberships'));
