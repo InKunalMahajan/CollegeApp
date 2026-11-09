@@ -73,6 +73,8 @@ Route::middleware('auth')->group(function () {
     // Campus administrators never receive the school_admin role. Campus
     // middleware checks BOTH the campus's organization and their assignment.
     Route::prefix('schools/{school}/campuses/{campus}')->group(function () {
+        Route::get('/finance-library', [CampusFinanceLibraryController::class, 'index'])
+            ->middleware('campus.can:campus.finance.view')->name('campus.finance-library.index');
         Route::get('/exams', [CampusExamController::class, 'index'])
             ->middleware('campus.can:campus.exams.view')->name('campus.exams.index');
         Route::post('/exams', [CampusExamController::class, 'store'])
