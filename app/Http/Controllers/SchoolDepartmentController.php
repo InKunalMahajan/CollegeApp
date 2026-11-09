@@ -89,6 +89,8 @@ class SchoolDepartmentController extends Controller
     public function store(Request $request, School $school): RedirectResponse
     {
         abort_unless($this->isAdmin($request, $school), 403);
+        // Department codes have a single canonical form in SQLite and MySQL.
+        $request->merge(['code' => strtoupper(trim((string) $request->input('code')))]);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'code' => ['required', 'string', 'max:32', 'regex:/^[A-Za-z0-9_-]+$/',
