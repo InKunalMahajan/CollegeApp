@@ -14,6 +14,14 @@
             ->where('school_id', $schoolContext->id)
             ->where('user_id', $person->id)
             ->value('role');
+        if (in_array($contextRole, ['school_admin', 'auditor', 'department_member'], true)) {
+            $nav[] = ['title' => 'People', 'icon' => 'users', 'items' => [[
+                'label' => 'Employee org tree',
+                'icon' => 'users',
+                'url' => route('school-employees.index', $schoolContext),
+                'active' => request()->routeIs('school-employees.*'),
+            ]]];
+        }
         if (in_array($contextRole, ['school_admin', 'department_member'], true)) {
             $assignedDepartments = \App\Models\SchoolDepartment::query()
                 ->where('school_id', $schoolContext->id)
