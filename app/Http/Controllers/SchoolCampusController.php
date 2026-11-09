@@ -84,6 +84,10 @@ class SchoolCampusController extends Controller
         }
 
         DB::transaction(function () use ($request, $school, $campus, $user, $audit) {
+            // Serialize concurrent grants to different campuses for the same
+            // user, so both admins cannot pass the one-campus check at once.
+            User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+
             // Keep campus administrators limited to one campus of a given
             // organization unless separately elevated by approved governance.
             $other = CampusMembership::query()->where('user_id', $user->id)
