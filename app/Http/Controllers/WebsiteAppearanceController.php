@@ -14,7 +14,7 @@ class WebsiteAppearanceController extends Controller
 {
     public function index(): View
     {
-        $appearance = SaasPlatformAppearance::query()->first();
+        $appearance = SaasPlatformAppearance::query()->where('setting_key', 'default')->first();
 
         return view('website-owner.appearance', compact('appearance'));
     }
