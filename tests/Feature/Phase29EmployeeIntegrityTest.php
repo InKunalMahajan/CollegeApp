@@ -129,6 +129,35 @@ class Phase29EmployeeIntegrityTest extends TestCase
         $this->assertNull($managerA->fresh()->manager_id);
     }
 
+    public function test_integrity_migration_can_be_reapplied_safely_after_partial_ddl(): void
+    {
+        // A prior MySQL run may have created composite keys before failing
+        // on the unsupported AUTO_INCREMENT CHECK expression.
+        $migration = require database_path(
+            'migrations/2026_11_09_120000_harden_school_employee_foreign_keys.php'
+        );
+        $migration->up();
+        $migration->up();
+
+        $this->test_valid_same_school_relationships_still_work();
+    }
+
+    public function test_mysql_self_reporting_uses_a_trigger_not_an_auto_increment_check(): void
+    {
+        if (DB::getDriverName() !== 'mysql') {
+            $this->markTestSkipped('MySQL trigger metadata applies only to MySQL.');
+        }
+
+        $this->assertTrue(DB::table('information_schema.TRIGGERS')
+            ->where('TRIGGER_SCHEMA', DB::getDatabaseName())
+            ->where('TRIGGER_NAME', 'school_employee_self_manager_update')
+            ->exists());
+        $this->assertTrue(DB::table('information_schema.TRIGGERS')
+            ->where('TRIGGER_SCHEMA', DB::getDatabaseName())
+            ->where('TRIGGER_NAME', 'school_employee_self_manager_insert')
+            ->exists());
+    }
+
     public function test_valid_same_school_relationships_still_work(): void
     {
         [$school, $department, $manager] = $this->makeSchool('H');
