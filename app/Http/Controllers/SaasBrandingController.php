@@ -25,8 +25,8 @@ class SaasBrandingController extends Controller
     public function update(Request $request, School $school, SchoolAuditTrail $audit): RedirectResponse
     {
         $data = $request->validate([
-            'display_name'=>['required','string','max:120'],
-            'primary_color'=>['required','regex:/^#[0-9a-fA-F]{6}$/'],
+            'display_name' => ['required', 'string', 'max:120'],
+            ...AppearanceSettings::rules(false),
         ]);
         DB::transaction(function () use ($request,$school,$data,$audit) {
             $branding = SaasBranding::updateOrCreate(['school_id'=>$school->id],$data);
