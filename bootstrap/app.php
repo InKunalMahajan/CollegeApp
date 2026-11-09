@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureWebsiteOwner;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureCampusPermission;
 use App\Http\Middleware\EnsureSchoolPermission;
@@ -17,7 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['role' => EnsureRole::class, 'school.member' => EnsureSchoolMembership::class, 'legacy.global' => EnsureLegacyGlobalAccess::class, 'school.can' => EnsureSchoolPermission::class, 'department.can' => EnsureDepartmentPermission::class, 'campus.can' => EnsureCampusPermission::class]);
+        $middleware->alias(['role' => EnsureRole::class, 'school.member' => EnsureSchoolMembership::class, 'legacy.global' => EnsureLegacyGlobalAccess::class, 'school.can' => EnsureSchoolPermission::class, 'department.can' => EnsureDepartmentPermission::class, 'campus.can' => EnsureCampusPermission::class, 'website.owner' => EnsureWebsiteOwner::class]);
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnsureEnabledAccount::class);
         $middleware->redirectGuestsTo(fn () => route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

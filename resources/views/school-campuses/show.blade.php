@@ -6,6 +6,9 @@
 @if(session('success'))<x-ui.alert type="success" class="mb-4">{{ session('success') }}</x-ui.alert>@endif
 @if($errors->any())<x-ui.alert type="error" class="mb-4">{{ $errors->first() }}</x-ui.alert>@endif
 <p class="mb-5"><a class="text-sm font-semibold text-indigo-700 hover:underline" href="{{ route('campus.operations.index', [$school, $campus]) }}">View campus operations overview →</a></p>
+@if(app(\App\Services\CampusAccess::class)->can(auth()->user(),$school,$campus,'campus.users.manage'))
+<p class="mb-5"><a href="{{ route('campus-users.index',[$school,$campus]) }}" class="text-sm font-semibold text-indigo-700">Manage campus user access →</a></p>
+@endif
 <div class="mb-6 grid gap-4 sm:grid-cols-2">
     <x-ui.card title="Employees in campus"><p class="text-3xl font-semibold tabular-nums">{{ $employees->total() }}</p></x-ui.card>
     <x-ui.card title="Students in campus"><p class="text-3xl font-semibold tabular-nums">{{ $students->total() }}</p></x-ui.card>

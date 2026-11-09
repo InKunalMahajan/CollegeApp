@@ -11,6 +11,7 @@ class CampusAccess
 {
     private const ABILITIES = [
         'campus.dashboard.view',
+        'campus.users.manage',
         'campus.operations.view',
         'campus.enrollments.view',
         'campus.enrollments.manage',
@@ -45,10 +46,21 @@ class CampusAccess
 
         // A global User.role value never grants campus permissions. A campus
         // administrator cannot become a school administrator by guessing IDs.
-        return CampusMembership::query()
+        $membership = CampusMembership::query()
             ->where('campus_id', $campus->id)
             ->where('user_id', $user->id)
-            ->where('role', 'campus_admin')
-            ->exists();
+            ->first();
+
+        if (! $membership) return false;
+        if ($membership->role === 'campus_admin') return true;
+        $viewer = ['campus.dashboard.view', 'campus.operations.view'];
+        $member = [...$viewer, 'campus.enrollments.view', 'campus.teaching.view',
+            'campus.attendance.view', 'campus.exams.view', 'campus.finance.view',
+            'campus.employees.view', 'campus.students.view'];
+        return match ($membership->role) {
+            'campus_viewer' => in_array($ability, $viewer, true),
+            'campus_member' => in_array($ability, $member, true),
+            default => false,
+        };
     }
 }
