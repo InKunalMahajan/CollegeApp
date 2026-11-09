@@ -31,7 +31,7 @@ class SchoolEmployeeProfileController extends Controller
             && $employee->manager
             && ! in_array($employee->manager->school_department_id,
                 $access->assignedDepartmentIds($request->user(), $school), true)) {
-            $employee->unsetRelation('manager');
+            $employee->setRelation('manager', null);
         }
         $history = $canManage
             ? SchoolAuditEvent::query()
