@@ -54,10 +54,18 @@ class CampusAttendanceController extends Controller
         DB::transaction(function () use ($request, $school, $campus, $data, $audit) {
             $enrollment = $this->verifiedEnrollments($school, $campus)
                 ->whereKey($data['class_enrollment_id'])->lockForUpdate()->firstOrFail();
-            $record = StudentAttendance::updateOrCreate([
-                'class_enrollment_id'=>$enrollment->id,
-                'attendance_date'=>$data['attendance_date'],
-            ],['status'=>$data['status']]);
+            $record = StudentAttendance::where('class_enrollment_id', $enrollment->id)
+                ->whereDate('attendance_date', $data['attendance_date'])
+                ->lockForUpdate()->first();
+            if ($record) {
+                $record->update(['status' => $data['status']]);
+            } else {
+                $record = StudentAttendance::create([
+                    'class_enrollment_id' => $enrollment->id,
+                    'attendance_date' => $data['attendance_date'],
+                    'status' => $data['status'],
+                ]);
+            }
             $audit->record($school->id, $request->user()->id, 'campus.attendance.student.saved',
                 'student_attendance', $record->id, ['campus_id'=>$campus->id]);
         });
@@ -75,10 +83,18 @@ class CampusAttendanceController extends Controller
             $teacher = TeacherProfile::whereKey($data['teacher_profile_id'])
                 ->where('school_id',$school->id)->where('campus_id',$campus->id)
                 ->lockForUpdate()->firstOrFail();
-            $record = StaffAttendance::updateOrCreate([
-                'teacher_profile_id'=>$teacher->id,
-                'attendance_date'=>$data['attendance_date'],
-            ],['status'=>$data['status']]);
+            $record = StaffAttendance::where('teacher_profile_id', $teacher->id)
+                ->whereDate('attendance_date', $data['attendance_date'])
+                ->lockForUpdate()->first();
+            if ($record) {
+                $record->update(['status' => $data['status']]);
+            } else {
+                $record = StaffAttendance::create([
+                    'teacher_profile_id' => $teacher->id,
+                    'attendance_date' => $data['attendance_date'],
+                    'status' => $data['status'],
+                ]);
+            }
             $audit->record($school->id,$request->user()->id,'campus.attendance.staff.saved',
                 'staff_attendance',$record->id,['campus_id'=>$campus->id]);
         });
