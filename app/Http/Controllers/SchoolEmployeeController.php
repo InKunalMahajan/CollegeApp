@@ -155,6 +155,104 @@ class SchoolEmployeeController extends Controller
             ->with('success', 'Employee updated.');
     }
 
+
+    public function import(Request $request, School $school): RedirectResponse
+    {
+        $this->ensureAdmin($request, $school);
+        $data = $request->validate([
+            'employee_csv' => ['required', 'file', 'max:2048'],
+        ]);
+
+        $file = $data['employee_csv'];
+        $handle = fopen($file->getRealPath(), 'rb');
+        if (!$handle) {
+            throw ValidationException::withMessages(['employee_csv' => 'CSV could not be opened.']);
+        }
+
+        try {
+            $header = fgetcsv($handle);
+            if (!is_array($header)) {
+                throw ValidationException::withMessages(['employee_csv' => 'CSV is empty.']);
+            }
+            $header[0] = preg_replace('/^\\xEF\\xBB\\xBF/', '', $header[0]);
+            $expected = [
+                'Employee Number', 'Display Name', 'Job Title',
+                'Department', 'Location', 'Reportees Count',
+            ];
+            if ($header !== $expected) {
+                throw ValidationException::withMessages([
+                    'employee_csv' => 'CSV headers must match the six OrgTree columns exactly.',
+                ]);
+            }
+
+            $rows = [];
+            $seen = [];
+            while (($row = fgetcsv($handle)) !== false) {
+                if ($row === [null]) {
+                    continue;
+                }
+                if (count($row) !== 6 || count($rows) >= 1000) {
+                    throw ValidationException::withMessages([
+                        'employee_csv' => 'CSV rows must have six columns; maximum 1000 employees.',
+                    ]);
+                }
+
+                [$number, $name, $title, $department, $location, $reportees] = array_map('trim', $row);
+                if ($number === '' || $name === '' || $title === ''
+                    || mb_strlen($number) > 40 || mb_strlen($name) > 160
+                    || mb_strlen($title) > 160 || mb_strlen($department) > 180
+                    || mb_strlen($location) > 100
+                    || filter_var($reportees, FILTER_VALIDATE_INT) === false
+                    || (int) $reportees < 0) {
+                    throw ValidationException::withMessages([
+                        'employee_csv' => 'CSV contains an invalid employee row.',
+                    ]);
+                }
+
+                if (isset($seen[$number])) {
+                    throw ValidationException::withMessages([
+                        'employee_csv' => 'Duplicate employee numbers in the CSV.',
+                    ]);
+                }
+                $seen[$number] = true;
+                $rows[] = [
+                    'school_id' => $school->id,
+                    'employee_number' => $number,
+                    'display_name' => $name,
+                    'job_title' => $title,
+                    'department_label' => $department ?: null,
+                    'location' => $location ?: null,
+                    // Reportees count is not a manager ID: never invent reporting lines.
+                    'manager_id' => null,
+                ];
+            }
+
+            if (!$rows) {
+                throw ValidationException::withMessages(['employee_csv' => 'CSV has no employee rows.']);
+            }
+        } finally {
+            fclose($handle);
+        }
+
+        DB::transaction(function () use ($rows, $school, $request) {
+            foreach ($rows as $row) {
+                $existing = SchoolEmployee::query()
+                    ->where('school_id', $school->id)
+                    ->where('employee_number', $row['employee_number'])->first();
+                if ($existing) {
+                    // Keep confirmed manager relationships and assigned department links.
+                    $existing->update(collect($row)->except(['school_id', 'manager_id'])->all());
+                } else {
+                    $existing = SchoolEmployee::create($row);
+                }
+                $this->audit($school, $request->user()->id, 'employee.imported', $existing->id);
+            }
+        });
+
+        return redirect()->route('school-employees.index', $school)
+            ->with('success', count($rows).' employee records imported. Reporting lines remain unassigned until verified.');
+    }
+
     private function audit(School $school, int $actorId, string $action, int $employeeId): void
     {
         DB::table('school_audit_events')->insert([
