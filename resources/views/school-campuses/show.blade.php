@@ -5,6 +5,7 @@
 <x-ui.page-heading :title="$campus->name" :description="$school->name.' · '.($campus->city ?: 'Campus'). ' · Campus-only employee and student management'"/>
 @if(session('success'))<x-ui.alert type="success" class="mb-4">{{ session('success') }}</x-ui.alert>@endif
 @if($errors->any())<x-ui.alert type="error" class="mb-4">{{ $errors->first() }}</x-ui.alert>@endif
+<p class="mb-5"><a class="text-sm font-semibold text-indigo-700 hover:underline" href="{{ route('campus.operations.index', [$school, $campus]) }}">View campus operations overview →</a></p>
 <div class="mb-6 grid gap-4 sm:grid-cols-2">
     <x-ui.card title="Employees in campus"><p class="text-3xl font-semibold tabular-nums">{{ $employees->total() }}</p></x-ui.card>
     <x-ui.card title="Students in campus"><p class="text-3xl font-semibold tabular-nums">{{ $students->total() }}</p></x-ui.card>
