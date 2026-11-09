@@ -1,0 +1,3 @@
+# Phase 47 — SaaS plans and trial records
+
+Website Owner can create plan records with optional campus/student caps and assign one active/trialing plan record per school. Price is stored in integer INR paise and never collected. Trial assignment does **not** bypass tenant RBAC or enforce caps, expiries, payment or automatic lockout. A full entitlement service, billing provider and approved suspension rules are required before commercial launch. Run `php artisan test --filter=Phase47SaasPlansTest` plus the complete suite.
