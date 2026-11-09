@@ -56,6 +56,8 @@ Route::middleware('auth')->group(function () {
         ->middleware('school.can:school.administration.manage')->group(function () {
             Route::get('/', [SchoolCampusController::class, 'index'])->name('school-campuses.index');
             Route::post('/', [SchoolCampusController::class, 'store'])->name('school-campuses.store');
+            Route::put('/{campus}', [SchoolCampusController::class, 'update'])->name('school-campuses.update');
+            Route::delete('/{campus}', [SchoolCampusController::class, 'destroy'])->name('school-campuses.destroy');
             Route::post('/{campus}/admins', [SchoolCampusController::class, 'grant'])->name('school-campuses.grant');
             Route::delete('/{campus}/admins/{membership}', [SchoolCampusController::class, 'revoke'])->name('school-campuses.revoke');
             Route::post('/{campus}/employees/{employee}/assign', [SchoolCampusController::class, 'assignEmployee'])->name('school-campuses.assign-employee');
