@@ -39,6 +39,30 @@ return new class extends Migration
         }
     }
 
+    private function mysqlIndexExists(string $name): bool
+    {
+        return DB::table('information_schema.STATISTICS')
+            ->where('TABLE_SCHEMA', DB::getDatabaseName())
+            ->where('TABLE_NAME', 'school_employees')
+            ->where('INDEX_NAME', $name)->exists();
+    }
+
+    private function mysqlForeignKeyExists(string $name): bool
+    {
+        return DB::table('information_schema.TABLE_CONSTRAINTS')
+            ->where('TABLE_SCHEMA', DB::getDatabaseName())
+            ->where('TABLE_NAME', 'school_employees')
+            ->where('CONSTRAINT_TYPE', 'FOREIGN KEY')
+            ->where('CONSTRAINT_NAME', $name)->exists();
+    }
+
+    private function mysqlTriggerExists(string $name): bool
+    {
+        return DB::table('information_schema.TRIGGERS')
+            ->where('TRIGGER_SCHEMA', DB::getDatabaseName())
+            ->where('TRIGGER_NAME', $name)->exists();
+    }
+
     public function up(): void
     {
         $driver = DB::getDriverName();
@@ -50,31 +74,64 @@ return new class extends Migration
         $this->assertCleanData();
 
         if ($driver === 'mysql') {
-            // The old single-column FKs remain in place. These additional
-            // composite FKs enforce ownership even for raw SQL and future jobs.
-            Schema::table('school_employees', function (Blueprint $table) {
-                $table->unique(['school_id', 'id'], 'school_employee_school_id_unique');
-            });
+            // MySQL DDL commits independently: the first failed Phase 29 run
+            // may already have created the unique key and both composite FKs.
+            // Detect those exact named objects and only add missing objects.
+            if (! $this->mysqlIndexExists('school_employee_school_id_unique')) {
+                Schema::table('school_employees', function (Blueprint $table) {
+                    $table->unique(['school_id', 'id'], 'school_employee_school_id_unique');
+                });
+            }
 
-            Schema::table('school_employees', function (Blueprint $table) {
-                $table->foreign(
-                    ['school_id', 'manager_id'],
-                    'school_employee_manager_school_fk'
-                )->references(['school_id', 'id'])
-                    ->on('school_employees')->restrictOnDelete()->restrictOnUpdate();
+            if (! $this->mysqlForeignKeyExists('school_employee_manager_school_fk')) {
+                Schema::table('school_employees', function (Blueprint $table) {
+                    $table->foreign(
+                        ['school_id', 'manager_id'], 'school_employee_manager_school_fk'
+                    )->references(['school_id', 'id'])
+                        ->on('school_employees')->restrictOnDelete()->restrictOnUpdate();
+                });
+            }
 
-                $table->foreign(
-                    ['school_id', 'school_department_id'],
-                    'school_employee_department_school_fk'
-                )->references(['school_id', 'id'])
-                    ->on('school_departments')->restrictOnDelete()->restrictOnUpdate();
-            });
+            if (! $this->mysqlForeignKeyExists('school_employee_department_school_fk')) {
+                Schema::table('school_employees', function (Blueprint $table) {
+                    $table->foreign(
+                        ['school_id', 'school_department_id'], 'school_employee_department_school_fk'
+                    )->references(['school_id', 'id'])
+                        ->on('school_departments')->restrictOnDelete()->restrictOnUpdate();
+                });
+            }
 
-            // MySQL CHECK prevents self-reporting even through SQL.
-            DB::statement(
-                'ALTER TABLE school_employees ADD CONSTRAINT school_employee_not_self_chk '.
-                'CHECK (manager_id IS NULL OR manager_id <> id)'
-            );
+            // MySQL 8.4/9.x disallows AUTO_INCREMENT column 'id' in CHECK.
+            // A trigger blocks direct self-manager edits without weakening
+            // the two composite school ownership foreign keys.
+            if (! $this->mysqlTriggerExists('school_employee_self_manager_update')) {
+                DB::unprepared(<<<'SQL'
+CREATE TRIGGER school_employee_self_manager_update
+BEFORE UPDATE ON school_employees
+FOR EACH ROW
+BEGIN
+    IF NEW.manager_id IS NOT NULL AND NEW.manager_id = NEW.id THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Employee cannot manage themselves';
+    END IF;
+END
+SQL);
+            }
+
+            if (! $this->mysqlTriggerExists('school_employee_self_manager_insert')) {
+                DB::unprepared(<<<'SQL'
+CREATE TRIGGER school_employee_self_manager_insert
+BEFORE INSERT ON school_employees
+FOR EACH ROW
+BEGIN
+    IF NEW.manager_id IS NOT NULL AND NEW.id IS NOT NULL
+        AND NEW.id <> 0 AND NEW.manager_id = NEW.id THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Employee cannot manage themselves';
+    END IF;
+END
+SQL);
+            }
 
             return;
         }
@@ -83,7 +140,7 @@ return new class extends Migration
         // ALTER TABLE. Triggers provide equivalent school ownership enforcement
         // without rebuilding or deleting an existing self-referential table.
         DB::unprepared(<<<'SQL'
-CREATE TRIGGER school_employee_school_insert
+CREATE TRIGGER IF NOT EXISTS school_employee_school_insert
 BEFORE INSERT ON school_employees
 FOR EACH ROW
 WHEN
@@ -103,7 +160,7 @@ END;
 SQL);
 
         DB::unprepared(<<<'SQL'
-CREATE TRIGGER school_employee_school_update
+CREATE TRIGGER IF NOT EXISTS school_employee_school_update
 BEFORE UPDATE OF id, school_id, manager_id, school_department_id ON school_employees
 FOR EACH ROW
 WHEN
@@ -127,7 +184,7 @@ END;
 SQL);
 
         DB::unprepared(<<<'SQL'
-CREATE TRIGGER school_department_employee_school_update
+CREATE TRIGGER IF NOT EXISTS school_department_employee_school_update
 BEFORE UPDATE OF id, school_id ON school_departments
 FOR EACH ROW
 WHEN EXISTS (
@@ -144,16 +201,21 @@ SQL);
     {
         $driver = DB::getDriverName();
         if ($driver === 'mysql') {
-            DB::statement(
-                'ALTER TABLE school_employees DROP CHECK school_employee_not_self_chk'
-            );
-            Schema::table('school_employees', function (Blueprint $table) {
-                $table->dropForeign('school_employee_manager_school_fk');
-                $table->dropForeign('school_employee_department_school_fk');
-            });
-            Schema::table('school_employees', function (Blueprint $table) {
-                $table->dropUnique('school_employee_school_id_unique');
-            });
+            DB::statement('DROP TRIGGER IF EXISTS school_employee_self_manager_update');
+            DB::statement('DROP TRIGGER IF EXISTS school_employee_self_manager_insert');
+
+            if ($this->mysqlForeignKeyExists('school_employee_manager_school_fk')) {
+                Schema::table('school_employees', fn (Blueprint $table) =>
+                    $table->dropForeign('school_employee_manager_school_fk'));
+            }
+            if ($this->mysqlForeignKeyExists('school_employee_department_school_fk')) {
+                Schema::table('school_employees', fn (Blueprint $table) =>
+                    $table->dropForeign('school_employee_department_school_fk'));
+            }
+            if ($this->mysqlIndexExists('school_employee_school_id_unique')) {
+                Schema::table('school_employees', fn (Blueprint $table) =>
+                    $table->dropUnique('school_employee_school_id_unique'));
+            }
         } elseif ($driver === 'sqlite') {
             DB::statement('DROP TRIGGER IF EXISTS school_employee_school_insert');
             DB::statement('DROP TRIGGER IF EXISTS school_employee_school_update');
