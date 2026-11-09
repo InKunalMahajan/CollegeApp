@@ -20,6 +20,7 @@ use App\Http\Controllers\SaasOnboardingController;
 use App\Http\Controllers\SaasPlanController;
 use App\Http\Controllers\SaasInvoiceController;
 use App\Http\Controllers\SaasBrandingController;
+use App\Http\Controllers\SaasReleaseController;
 use App\Http\Controllers\OrganizationUserController;
 use App\Http\Controllers\CampusUserController;
 use App\Http\Controllers\SchoolEmployeeProfileController;
@@ -68,6 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/saas/onboarding', [SaasOnboardingController::class, 'store'])->middleware('throttle:3,60')->name('saas.onboarding.store');
     Route::get('/website-owner/onboarding', [SaasOnboardingController::class, 'review'])->middleware('website.owner')->name('saas.onboarding.review');
     Route::get('/website-owner/plans', [SaasPlanController::class, 'index'])->middleware('website.owner')->name('saas.plans.index');
+    Route::get('/website-owner/saas/release', [SaasReleaseController::class, 'index'])->middleware('website.owner')->name('saas.release.index');
     Route::get('/website-owner/invoices', [SaasInvoiceController::class, 'index'])->middleware('website.owner')->name('saas.invoices.index');
     Route::post('/website-owner/invoices', [SaasInvoiceController::class, 'store'])->middleware('website.owner')->name('saas.invoices.store');
     Route::post('/website-owner/plans', [SaasPlanController::class, 'store'])->middleware('website.owner')->name('saas.plans.store');

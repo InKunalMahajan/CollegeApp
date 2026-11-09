@@ -2,7 +2,7 @@
     $person = auth()->user();
     $legacy = config('school_security.legacy_global_routes_enabled', false);
     $role = $person->role;
-    $platformContext = request()->routeIs('website-owner.*', 'users.*');
+    $platformContext = request()->routeIs('website-owner.*', 'users.*', 'saas.onboarding.review', 'saas.plans.*', 'saas.invoices.*', 'saas.release.*');
     $schoolContext = request()->route('school');
     $campusContext = request()->route('campus');
     $isOwner = \App\Models\WebsiteOwner::where('user_id', $person->id)->exists();
@@ -30,6 +30,14 @@
                 'url' => route('users.index'), 'active' => request()->routeIs('users.*')],
             ['label' => 'Organization administrators', 'icon' => 'users',
                 'url' => route('website-owner.users.index'), 'active' => request()->routeIs('website-owner.users.*')],
+            ['label' => 'Onboarding approvals', 'icon' => 'clipboard-check',
+                'url' => route('saas.onboarding.review'), 'active' => request()->routeIs('saas.onboarding.review')],
+            ['label' => 'SaaS plans', 'icon' => 'layers',
+                'url' => route('saas.plans.index'), 'active' => request()->routeIs('saas.plans.*')],
+            ['label' => 'Draft invoices', 'icon' => 'receipt',
+                'url' => route('saas.invoices.index'), 'active' => request()->routeIs('saas.invoices.*')],
+            ['label' => 'Release checks', 'icon' => 'shield-check',
+                'url' => route('saas.release.index'), 'active' => request()->routeIs('saas.release.*')],
             ['label' => 'My workspaces', 'icon' => 'school',
                 'url' => route('my-schools.index'), 'active' => false],
         ]];
@@ -68,6 +76,9 @@
             $organizationItems[] = ['label' => 'Manage campuses', 'icon' => 'building-2',
                 'url' => route('school-campuses.index', $schoolContext),
                 'active' => request()->routeIs('school-campuses.*')];
+            $organizationItems[] = ['label' => 'Branding & domains', 'icon' => 'palette',
+                'url' => route('saas.branding.index', $schoolContext),
+                'active' => request()->routeIs('saas.branding.*')];
         }
         $organizationItems[] = ['label' => 'Switch workspace', 'icon' => 'school',
             'url' => route('my-schools.index'), 'active' => false];
@@ -79,6 +90,8 @@
                 'url' => route('dashboard'), 'active' => request()->routeIs('dashboard')],
             ['label' => 'My Schools', 'icon' => 'school',
                 'url' => route('my-schools.index'), 'active' => request()->routeIs('my-schools.*')],
+            ['label' => 'Request organization', 'icon' => 'plus',
+                'url' => route('saas.onboarding.index'), 'active' => request()->routeIs('saas.onboarding.index')],
         ]];
     }
 
