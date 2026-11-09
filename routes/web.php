@@ -11,6 +11,7 @@ use App\Http\Controllers\CampusWorkspaceController;
 use App\Http\Controllers\CampusOperationsController;
 use App\Http\Controllers\CampusEnrollmentController;
 use App\Http\Controllers\CampusTeachingController;
+use App\Http\Controllers\CampusAttendanceController;
 use App\Http\Controllers\SchoolEmployeeProfileController;
 use App\Http\Controllers\SchoolPermissionMatrixController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
