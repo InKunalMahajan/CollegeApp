@@ -19,10 +19,11 @@ class WebsiteOwnerUserController extends Controller
 {
     public function index(Request $request): View
     {
+        $search = $request->validate(['search' => ['nullable','string','max:120']])['search'] ?? null;
         $users = User::query()
-            ->when($request->filled('search'), fn ($q) => $q->where(
-                fn ($query) => $query->where('name', 'like', '%'.addcslashes($request->input('search'), '%_\\').'%')
-                    ->orWhere('email', 'like', '%'.addcslashes($request->input('search'), '%_\\').'%')
+            ->when(filled($search), fn ($q) => $q->where(
+                fn ($query) => $query->where('name', 'like', '%'.addcslashes($search, '%_\\').'%')
+                    ->orWhere('email', 'like', '%'.addcslashes($search, '%_\\').'%')
             ))->orderBy('name')->paginate(20)->withQueryString();
         $schools = School::orderBy('name')->get();
         $admins = SchoolMembership::with(['user', 'school'])
