@@ -37,6 +37,10 @@ return [
 
     'school_roles' => [
         'school_admin' => ['*'],
+        'organization_viewer' => [
+            'school.dashboard.view',
+            'school.portal.view',
+        ],
         'auditor' => [
             'school.dashboard.view',
             'school.portal.view',
