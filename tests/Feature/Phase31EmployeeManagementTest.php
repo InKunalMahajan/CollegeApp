@@ -121,6 +121,40 @@ class Phase31EmployeeManagementTest extends TestCase
         ]);
     }
 
+    public function test_far_future_joining_dates_fail_validation_without_timestamp_overflow(): void
+    {
+        $school = $this->school('FUTURE');
+        $admin = $this->member($school, 'school_admin', 'FutureAdmin');
+
+        foreach (['2099-01-01', '9999-12-31'] as $date) {
+            $this->actingAs($admin)->post(route('school-employees.store', $school), [
+                ...$this->details('FUTURE31'),
+                'joined_on' => $date,
+            ])->assertRedirect()->assertSessionHasErrors('joined_on');
+        }
+
+        $this->assertDatabaseMissing('school_employees', [
+            'school_id' => $school->id,
+            'employee_number' => 'FUTURE31',
+        ]);
+    }
+
+    public function test_invalid_calendar_date_is_rejected_without_changing_employee(): void
+    {
+        $school = $this->school('CALENDAR');
+        $admin = $this->member($school, 'school_admin', 'CalendarAdmin');
+
+        $this->actingAs($admin)->post(route('school-employees.store', $school), [
+            ...$this->details('INVALID31'),
+            'joined_on' => '2026-02-30',
+        ])->assertRedirect()->assertSessionHasErrors('joined_on');
+
+        $this->assertDatabaseMissing('school_employees', [
+            'school_id' => $school->id,
+            'employee_number' => 'INVALID31',
+        ]);
+    }
+
     public function test_school_scoped_email_uniqueness_and_other_school_same_email(): void
     {
         $first = $this->school('A');
