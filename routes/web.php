@@ -8,6 +8,7 @@ use App\Http\Controllers\SchoolDepartmentController;
 use App\Http\Controllers\SchoolEmployeeController;
 use App\Http\Controllers\SchoolCampusController;
 use App\Http\Controllers\CampusWorkspaceController;
+use App\Http\Controllers\CampusOperationsController;
 use App\Http\Controllers\SchoolEmployeeProfileController;
 use App\Http\Controllers\SchoolPermissionMatrixController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
