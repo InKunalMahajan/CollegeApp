@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\WebsiteOwner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -51,9 +52,11 @@ class UserManagementTest extends TestCase
         }
     }
 
-    public function test_admin_can_create_a_teacher_account(): void
+    public function test_explicit_website_owner_can_create_a_teacher_account(): void
     {
-        $this->actingAs($this->makeUser('admin'))
+        $admin = $this->makeUser('admin');
+        WebsiteOwner::create(['user_id' => $admin->id]);
+        $this->actingAs($admin)
             ->post('/users', [
                 'name' => 'New Teacher',
                 'email' => 'new.teacher@example.test',
@@ -72,9 +75,11 @@ class UserManagementTest extends TestCase
         );
     }
 
-    public function test_admin_cannot_create_account_with_short_password(): void
+    public function test_website_owner_cannot_create_account_with_short_password(): void
     {
-        $this->actingAs($this->makeUser('admin'))
+        $admin = $this->makeUser('admin');
+        WebsiteOwner::create(['user_id' => $admin->id]);
+        $this->actingAs($admin)
             ->post('/users', [
                 'name' => 'Short Password',
                 'email' => 'short@example.test',
