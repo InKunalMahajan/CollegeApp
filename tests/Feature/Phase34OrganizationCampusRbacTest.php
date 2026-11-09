@@ -10,6 +10,8 @@ use App\Models\SchoolMembership;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class Phase34OrganizationCampusRbacTest extends TestCase
@@ -293,6 +295,31 @@ class Phase34OrganizationCampusRbacTest extends TestCase
             'id' => $student->id, 'status' => 'inactive',
             'school_id' => $school->id, 'campus_id' => $mumbai->id,
         ]);
+    }
+
+    public function test_raw_database_rejects_cross_organization_campus_assignments(): void
+    {
+        $school = $this->school('INTEGRITY');
+        $other = $this->school('UNRELATED');
+        $foreignCampus = $this->campus($other, 'Delhi');
+        $employee = $this->employee($school, null, 'INTEGRITY34');
+        $student = $this->student($school, null, 'INTEGRITY34S');
+
+        foreach ([
+            ['school_employees', $employee->id],
+            ['students', $student->id],
+        ] as [$table, $id]) {
+            try {
+                DB::table($table)->where('id', $id)
+                    ->update(['campus_id' => $foreignCampus->id]);
+                $this->fail('Database permitted linking a record to a campus in another organization.');
+            } catch (QueryException $exception) {
+                $this->assertNotEmpty($exception->getMessage());
+            }
+        }
+
+        $this->assertNull($employee->fresh()->campus_id);
+        $this->assertNull($student->fresh()->campus_id);
     }
 
     public function test_global_admin_without_a_membership_cannot_access_any_campus(): void
