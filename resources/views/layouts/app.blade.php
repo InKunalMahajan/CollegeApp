@@ -8,6 +8,14 @@
         ['label' => 'My Schools', 'icon' => 'school', 'url' => route('my-schools.index'), 'active' => request()->routeIs('my-schools.*')],
     ]];
 
+    if (\App\Models\WebsiteOwner::where('user_id', $person->id)->exists()) {
+        $nav[] = ['title' => 'Website Owner', 'icon' => 'shield-check', 'items' => [[
+            'label' => 'Platform user accounts', 'icon' => 'user-cog',
+            'url' => route('website-owner.users.index'),
+            'active' => request()->routeIs('website-owner.*'),
+        ]]];
+    }
+
     $schoolContext = request()->route('school');
     if ($schoolContext instanceof \App\Models\School) {
         $access = app(\App\Services\SchoolAccess::class);
@@ -66,6 +74,7 @@
                     ['Finance', 'wallet', 'school-finance.fees', 'school-finance.fees'],
                     ['Library', 'library', 'school-finance.library', 'school-finance.library'],
                     ['Student accounts', 'user-cog', 'school-student-accounts.index', 'school-student-accounts.*'],
+                    ['Organization users', 'user-cog', 'organization-users.index', 'organization-users.*'],
                     ['School administration', 'settings', 'school-admin.index', 'school-admin.*'],
                 ] as [$label, $icon, $name, $pattern]) {
                     $schoolItems[] = ['label' => $label, 'icon' => $icon, 'url' => route($name, $schoolContext), 'active' => request()->routeIs($pattern)];

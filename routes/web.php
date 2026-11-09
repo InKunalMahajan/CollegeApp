@@ -8,6 +8,15 @@ use App\Http\Controllers\SchoolDepartmentController;
 use App\Http\Controllers\SchoolEmployeeController;
 use App\Http\Controllers\SchoolCampusController;
 use App\Http\Controllers\CampusWorkspaceController;
+use App\Http\Controllers\CampusOperationsController;
+use App\Http\Controllers\CampusEnrollmentController;
+use App\Http\Controllers\CampusTeachingController;
+use App\Http\Controllers\CampusAttendanceController;
+use App\Http\Controllers\CampusExamController;
+use App\Http\Controllers\CampusFinanceLibraryController;
+use App\Http\Controllers\WebsiteOwnerUserController;
+use App\Http\Controllers\OrganizationUserController;
+use App\Http\Controllers\CampusUserController;
 use App\Http\Controllers\SchoolEmployeeProfileController;
 use App\Http\Controllers\SchoolPermissionMatrixController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
@@ -50,6 +59,21 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
     Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
+    Route::prefix('website-owner')->middleware('website.owner')->group(function () {
+        Route::get('/users', [WebsiteOwnerUserController::class, 'index'])->name('website-owner.users.index');
+        Route::post('/users', [WebsiteOwnerUserController::class, 'store'])->name('website-owner.users.store');
+        Route::put('/users/{user}', [WebsiteOwnerUserController::class, 'update'])->name('website-owner.users.update');
+        Route::delete('/users/{user}', [WebsiteOwnerUserController::class, 'destroy'])->name('website-owner.users.destroy');
+        Route::post('/users/{user}/restore', [WebsiteOwnerUserController::class, 'restore'])->name('website-owner.users.restore');
+        Route::post('/organization-admins', [WebsiteOwnerUserController::class, 'grant'])->name('website-owner.admins.grant');
+        Route::delete('/organization-admins/{membership}', [WebsiteOwnerUserController::class, 'revoke'])->name('website-owner.admins.revoke');
+    });
+    Route::prefix('schools/{school}/user-access')->middleware('school.can:school.users.manage')->group(function () {
+        Route::get('/', [OrganizationUserController::class, 'index'])->name('organization-users.index');
+        Route::post('/', [OrganizationUserController::class, 'store'])->name('organization-users.store');
+        Route::put('/{membership}', [OrganizationUserController::class, 'update'])->name('organization-users.update');
+        Route::delete('/{membership}', [OrganizationUserController::class, 'destroy'])->name('organization-users.destroy');
+    });
     // School is the parent organization (e.g. TEACH). Only its explicitly
     // authorized organization administrator can grant campus administration.
     Route::prefix('schools/{school}/campuses')
@@ -67,6 +91,38 @@ Route::middleware('auth')->group(function () {
     // Campus administrators never receive the school_admin role. Campus
     // middleware checks BOTH the campus's organization and their assignment.
     Route::prefix('schools/{school}/campuses/{campus}')->group(function () {
+        Route::get('/user-access', [CampusUserController::class, 'index'])
+            ->middleware('campus.can:campus.users.manage')->name('campus-users.index');
+        Route::post('/user-access', [CampusUserController::class, 'store'])
+            ->middleware('campus.can:campus.users.manage')->name('campus-users.store');
+        Route::put('/user-access/{membership}', [CampusUserController::class, 'update'])
+            ->middleware('campus.can:campus.users.manage')->name('campus-users.update');
+        Route::delete('/user-access/{membership}', [CampusUserController::class, 'destroy'])
+            ->middleware('campus.can:campus.users.manage')->name('campus-users.destroy');
+        Route::get('/finance-library', [CampusFinanceLibraryController::class, 'index'])
+            ->middleware('campus.can:campus.finance.view')->name('campus.finance-library.index');
+        Route::get('/exams', [CampusExamController::class, 'index'])
+            ->middleware('campus.can:campus.exams.view')->name('campus.exams.index');
+        Route::post('/exams', [CampusExamController::class, 'store'])
+            ->middleware('campus.can:campus.exams.manage')->name('campus.exams.store');
+        Route::post('/exams/{exam}/results', [CampusExamController::class, 'result'])
+            ->middleware('campus.can:campus.exams.manage')->name('campus.exams.result');
+        Route::get('/attendance', [CampusAttendanceController::class, 'index'])
+            ->middleware('campus.can:campus.attendance.view')->name('campus.attendance.index');
+        Route::post('/attendance/students', [CampusAttendanceController::class, 'student'])
+            ->middleware('campus.can:campus.attendance.manage')->name('campus.attendance.student');
+        Route::post('/attendance/staff', [CampusAttendanceController::class, 'staff'])
+            ->middleware('campus.can:campus.attendance.manage')->name('campus.attendance.staff');
+        Route::get('/teaching', [CampusTeachingController::class, 'index'])
+            ->middleware('campus.can:campus.teaching.view')->name('campus.teaching.index');
+        Route::post('/teaching', [CampusTeachingController::class, 'store'])
+            ->middleware('campus.can:campus.teaching.manage')->name('campus.teaching.store');
+        Route::get('/enrollments', [CampusEnrollmentController::class, 'index'])
+            ->middleware('campus.can:campus.enrollments.view')->name('campus.enrollments.index');
+        Route::post('/enrollments', [CampusEnrollmentController::class, 'store'])
+            ->middleware('campus.can:campus.enrollments.manage')->name('campus.enrollments.store');
+        Route::get('/operations', [CampusOperationsController::class, 'index'])
+            ->middleware('campus.can:campus.operations.view')->name('campus.operations.index');
         Route::get('/workspace', [CampusWorkspaceController::class, 'index'])
             ->middleware('campus.can:campus.dashboard.view')->name('campus-workspace.index');
         Route::post('/employees', [CampusWorkspaceController::class, 'createEmployee'])
@@ -109,7 +165,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{department}/members/{membership}', [SchoolDepartmentController::class, 'revoke'])->middleware('school.can:school.departments.manage')->name('school-departments.revoke');
     });
     // Explicit school membership is checked inside the read-only controller.
-    Route::middleware('school.member:school_admin,auditor')->group(function () {
+    Route::middleware('school.member:school_admin,auditor,organization_viewer')->group(function () {
         Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->middleware('school.can:school.security.view')->name('school-security.report');
         Route::get('/schools/{school}/portal', [SchoolPortalController::class, 'index'])->middleware('school.can:school.portal.view')->name('school-portal.index');
         Route::get('/schools/{school}/dashboard', [SchoolDashboardController::class, 'index'])->middleware('school.can:school.dashboard.view')->name('school-dashboard.index');
@@ -221,8 +277,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/setup/{module}/{record}', [AcademicSetupController::class, 'update'])->name('setup.update');
         Route::delete('/setup/{module}/{record}', [AcademicSetupController::class, 'destroy'])->name('setup.destroy');
         Route::get('/modules', ModuleCatalogController::class)->name('modules.index');
-        Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
-        Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
-        Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+        Route::get('/users', [UserManagementController::class, 'index'])->middleware('website.owner')->name('users.index');
+        Route::get('/users/create', [UserManagementController::class, 'create'])->middleware('website.owner')->name('users.create');
+        Route::post('/users', [UserManagementController::class, 'store'])->middleware('website.owner')->name('users.store');
     });
 });

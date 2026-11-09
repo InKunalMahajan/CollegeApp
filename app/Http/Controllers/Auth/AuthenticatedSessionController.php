@@ -23,7 +23,7 @@ class AuthenticatedSessionController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($credentials, false)) {
+        if (! Auth::attempt([...$credentials, 'disabled_at' => null], false)) {
             throw ValidationException::withMessages([
                 'email' => 'The provided credentials are incorrect.',
             ]);

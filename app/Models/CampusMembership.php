@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CampusMembership extends Model
 {
-    public const ROLES = ['campus_admin'];
+    public const ROLES = ['campus_admin', 'campus_member', 'campus_viewer'];
 
     protected $fillable = ['campus_id', 'user_id', 'role'];
 

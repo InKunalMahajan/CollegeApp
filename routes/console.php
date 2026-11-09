@@ -82,3 +82,17 @@ Artisan::command('school:release-check {--production : Require production-safe s
     $this->info('Release configuration checks passed. This is not a production security approval.');
     return 0;
 })->purpose('Read-only SchoolApp deployment preflight without exposing credentials');
+
+
+// Only operators with command-line access can bootstrap website ownership.
+// Never grant platform-owner access merely from a legacy global admin role.
+Artisan::command('website:owner:grant {email}', function (string $email) {
+    $user = \App\Models\User::where('email', $email)->whereNull('disabled_at')->first();
+    if (! $user) {
+        $this->error('No active existing account with that email.');
+        return 1;
+    }
+    \App\Models\WebsiteOwner::firstOrCreate(['user_id' => $user->id]);
+    $this->info('Website owner access granted to existing account.');
+    return 0;
+})->purpose('Provision website owner from a trusted terminal session only');

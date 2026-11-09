@@ -15,6 +15,7 @@
 return [
     'abilities' => [
         'school.dashboard.view' => 'View school-wide analytics',
+        'school.users.manage' => 'Manage scoped organization user access',
         'school.portal.view' => 'View school overview',
         'school.security.view' => 'View school security and audit report',
         'school.departments.view' => 'List school departments',
@@ -36,6 +37,10 @@ return [
 
     'school_roles' => [
         'school_admin' => ['*'],
+        'organization_viewer' => [
+            'school.dashboard.view',
+            'school.portal.view',
+        ],
         'auditor' => [
             'school.dashboard.view',
             'school.portal.view',

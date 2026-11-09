@@ -12,13 +12,14 @@
 @if($membership->role !== 'department_member')
 <a href="{{ route('school-dashboard.index',$membership->school) }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white"><x-ui.icon name="layout-dashboard"/> Dashboard</a>
 <a href="{{ route('school-portal.index',$membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="eye"/> Overview</a>
-<a href="{{ route('school-security.report',$membership->school) }}" class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="chart-column"/> Reports</a>
+@if($membership->role !== 'organization_viewer')<a href="{{ route('school-security.report',$membership->school) }}" class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="chart-column"/> Reports</a>@endif
 @endif
-@if($membership->role !== 'auditor')
+@if(in_array($membership->role, ['school_admin','department_member']))
 <a href="{{ route('school-departments.index', $membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700"><x-ui.icon name="layout-grid"/> Departments</a>
 @endif
-<a href="{{ route('school-employees.index', $membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="users"/> Employee tree</a>
+@if($membership->role !== 'organization_viewer')<a href="{{ route('school-employees.index', $membership->school) }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold"><x-ui.icon name="users"/> Employee tree</a>@endif
 @if($membership->role==='school_admin')
+<a href="{{ route('organization-users.index', $membership->school) }}" class="rounded-lg border border-indigo-200 px-3 py-2 text-sm font-semibold text-indigo-700">Organization users</a>
 <a href="{{ route('school-campuses.index', $membership->school) }}" class="rounded-lg border border-indigo-200 px-3 py-2 text-sm font-semibold text-indigo-700">Manage campuses</a>
 <a href="{{ route('school-admin.index',$membership->school) }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white"><x-ui.icon name="settings"/> Manage school</a>
 @endif
@@ -36,8 +37,9 @@
 <x-ui.card>
 <h3 class="text-lg font-semibold">{{ $assignment->campus->name }}</h3>
 <p class="mt-1 text-sm text-slate-600">Organization: {{ $assignment->campus->school->name }}</p>
-<p class="mt-1 text-xs text-slate-500">Role: Campus administrator · {{ $assignment->campus->city ?: 'Campus' }} only</p>
+<p class="mt-1 text-xs text-slate-500">Role: {{ str_replace('_',' ',ucwords($assignment->role,'_')) }} · {{ $assignment->campus->city ?: 'Campus' }} only</p>
 <a href="{{ route('campus-workspace.index', [$assignment->campus->school, $assignment->campus]) }}" class="mt-4 inline-flex rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Open campus workspace</a>
+@if($assignment->role === 'campus_admin')<a href="{{ route('campus-users.index', [$assignment->campus->school, $assignment->campus]) }}" class="mt-4 ml-2 inline-flex rounded-xl border border-indigo-200 px-4 py-2.5 text-sm font-semibold text-indigo-700">Manage campus users</a>@endif
 </x-ui.card>
 @endforeach
 </div>
