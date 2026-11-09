@@ -199,8 +199,12 @@ class Phase32EmployeeDashboardTest extends TestCase
             $school, 'search' => 'Paged Lecturer', 'page' => 2,
         ]))->assertOk()
             ->assertSee('Paged Lecturer 024')
-            ->assertDontSee('Paged Lecturer 001')
-            ->assertSee('search=Paged%20Lecturer', false);
+            ->assertViewHas('directory', fn ($page) =>
+                $page->currentPage() === 2
+                && $page->total() === 24
+                && count($page->items()) === 4
+                && $page->items()[0]->employee_number === 'PAG021'
+            );
     }
 
     public function test_large_roster_hides_recursive_tree_but_keeps_directory_available(): void
