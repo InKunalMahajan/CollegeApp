@@ -25,7 +25,7 @@ class WebsiteAppearanceController extends Controller
 
         DB::transaction(function () use ($request, $data, $audit) {
             // Lock the singleton row if it exists. The settings page is Owner-only.
-            $appearance = SaasPlatformAppearance::query()->lockForUpdate()->first();
+            $appearance = SaasPlatformAppearance::query()->where('setting_key', 'default')->lockForUpdate()->first();
             if ($appearance) {
                 $appearance->update($data);
             } else {
