@@ -58,12 +58,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [SchoolEmployeeController::class, 'store'])->middleware('school.can:school.employees.manage')->name('school-employees.store');
         Route::post('/import', [SchoolEmployeeController::class, 'import'])->middleware('school.can:school.employees.import')->name('school-employees.import');
         Route::put('/{employee}', [SchoolEmployeeController::class, 'update'])->middleware('school.can:school.employees.manage')->name('school-employees.update');
+        Route::delete('/{employee}', [SchoolEmployeeController::class, 'destroy'])->middleware('school.can:school.employees.manage')->name('school-employees.destroy');
+        Route::post('/{employee}/restore', [SchoolEmployeeController::class, 'restore'])->middleware('school.can:school.employees.manage')->name('school-employees.restore');
     });
 
     Route::prefix('schools/{school}/departments')->group(function () {
         Route::get('/', [SchoolDepartmentController::class, 'index'])->middleware('school.can:school.departments.view')->name('school-departments.index');
         Route::get('/{department}', [SchoolDepartmentController::class, 'show'])->middleware('department.can:department.dashboard.view')->name('school-departments.show');
         Route::post('/', [SchoolDepartmentController::class, 'store'])->middleware('school.can:school.departments.manage')->name('school-departments.store');
+        Route::put('/{department}', [SchoolDepartmentController::class, 'update'])->middleware('school.can:school.departments.manage')->name('school-departments.update');
+        Route::delete('/{department}', [SchoolDepartmentController::class, 'destroy'])->middleware('school.can:school.departments.manage')->name('school-departments.destroy');
         Route::post('/{department}/members', [SchoolDepartmentController::class, 'assign'])->middleware('school.can:school.departments.manage')->name('school-departments.assign');
         Route::delete('/{department}/members/{membership}', [SchoolDepartmentController::class, 'revoke'])->middleware('school.can:school.departments.manage')->name('school-departments.revoke');
     });
