@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class SaasBranding extends Model
 {
-    protected $fillable = ['school_id','display_name','primary_color'];
+    protected $fillable = ['school_id','display_name','primary_color', 'font_family', 'font_size', 'density'];
 }
