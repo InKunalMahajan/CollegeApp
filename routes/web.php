@@ -10,6 +10,7 @@ use App\Http\Controllers\SchoolCampusController;
 use App\Http\Controllers\CampusWorkspaceController;
 use App\Http\Controllers\CampusOperationsController;
 use App\Http\Controllers\CampusEnrollmentController;
+use App\Http\Controllers\CampusTeachingController;
 use App\Http\Controllers\SchoolEmployeeProfileController;
 use App\Http\Controllers\SchoolPermissionMatrixController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
@@ -69,6 +70,10 @@ Route::middleware('auth')->group(function () {
     // Campus administrators never receive the school_admin role. Campus
     // middleware checks BOTH the campus's organization and their assignment.
     Route::prefix('schools/{school}/campuses/{campus}')->group(function () {
+        Route::get('/teaching', [CampusTeachingController::class, 'index'])
+            ->middleware('campus.can:campus.teaching.view')->name('campus.teaching.index');
+        Route::post('/teaching', [CampusTeachingController::class, 'store'])
+            ->middleware('campus.can:campus.teaching.manage')->name('campus.teaching.store');
         Route::get('/enrollments', [CampusEnrollmentController::class, 'index'])
             ->middleware('campus.can:campus.enrollments.view')->name('campus.enrollments.index');
         Route::post('/enrollments', [CampusEnrollmentController::class, 'store'])
