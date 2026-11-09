@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureWebsiteOwner;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\EnsureCampusPermission;
 use App\Http\Middleware\EnsureSchoolPermission;
