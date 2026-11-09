@@ -55,6 +55,7 @@ class WebsiteOwnerUserController extends Controller
             'name'=>['required','string','max:255'],
             'email'=>['required','email','max:255',Rule::unique('users','email')->ignore($user->id)],
             'password'=>['nullable','confirmed',Password::min(12)],
+            'role'=>['required',Rule::in(['staff','teacher','student'])],
         ]);
         if (blank($data['password'] ?? null)) unset($data['password']);
         DB::transaction(function () use ($request,$user,$data,$audit) {

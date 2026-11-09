@@ -59,6 +59,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
     Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
+    // Explicit platform owner routes must not depend on legacy global admin
+    // privileges or the optional legacy-global-route feature flag.
+    Route::get('/users', [UserManagementController::class, 'index'])->middleware('website.owner')->name('users.index');
+    Route::get('/users/create', [UserManagementController::class, 'create'])->middleware('website.owner')->name('users.create');
+    Route::post('/users', [UserManagementController::class, 'store'])->middleware('website.owner')->name('users.store');
     Route::prefix('website-owner')->middleware('website.owner')->group(function () {
         Route::get('/users', [WebsiteOwnerUserController::class, 'index'])->name('website-owner.users.index');
         Route::post('/users', [WebsiteOwnerUserController::class, 'store'])->name('website-owner.users.store');
@@ -277,8 +282,5 @@ Route::middleware('auth')->group(function () {
         Route::put('/setup/{module}/{record}', [AcademicSetupController::class, 'update'])->name('setup.update');
         Route::delete('/setup/{module}/{record}', [AcademicSetupController::class, 'destroy'])->name('setup.destroy');
         Route::get('/modules', ModuleCatalogController::class)->name('modules.index');
-        Route::get('/users', [UserManagementController::class, 'index'])->middleware('website.owner')->name('users.index');
-        Route::get('/users/create', [UserManagementController::class, 'create'])->middleware('website.owner')->name('users.create');
-        Route::post('/users', [UserManagementController::class, 'store'])->middleware('website.owner')->name('users.store');
     });
 });

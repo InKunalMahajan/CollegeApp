@@ -39,6 +39,7 @@
 <form method="POST" action="{{ route('website-owner.users.update',$user) }}" class="mt-3 grid gap-2 sm:grid-cols-2">@csrf @method('PUT')
 <label>Name<input name="name" value="{{ $user->name }}" maxlength="255" required class="w-full"></label>
 <label>Email<input type="email" name="email" value="{{ $user->email }}" maxlength="255" required class="w-full"></label>
+<label>Account type<select name="role" required class="w-full">@if($user->role === 'admin')<option value="" selected disabled>Legacy Admin — select a new type</option>@endif @foreach(['staff'=>'Staff','teacher'=>'Teacher','student'=>'Student'] as $value=>$label)<option value="{{ $value }}" @selected($user->role === $value)>{{ $label }}</option>@endforeach</select></label>
 <label>New password (optional)<input type="password" name="password" minlength="12" autocomplete="new-password" class="w-full"></label>
 <label>Confirm new password<input type="password" name="password_confirmation" autocomplete="new-password" class="w-full"></label>
 <div class="sm:col-span-2"><button class="rounded-lg bg-indigo-600 px-3 py-2 text-white">Save account</button></div>
