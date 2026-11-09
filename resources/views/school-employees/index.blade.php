@@ -192,9 +192,28 @@
                     <div><label class="block text-sm" for="edit-email-{{ $employee->id }}">Work email</label><input id="edit-email-{{ $employee->id }}" type="email" name="work_email" maxlength="255" value="{{ $employee->work_email }}" class="w-full"></div>
                     <div class="sm:col-span-2"><button type="submit" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white">Save employee</button></div>
                 </form>
+                <form method="POST" action="{{ route('school-employees.destroy', [$school, $employee]) }}" class="mt-3" onsubmit="return confirm('Archive this employee? You can restore the record later.');">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="rounded-xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-50">Archive employee</button>
+                </form>
             </details>
         @empty
             <p class="text-sm text-slate-500">No employee records yet.</p>
+        @endforelse
+    </div>
+</x-ui.card>
+<x-ui.card class="mt-6" title="Archived employees" description="Archived records are hidden from the directory but can be restored by school administrators.">
+    <div class="space-y-3">
+        @forelse($archivedEmployees as $archived)
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div><strong>{{ $archived->display_name }}</strong><p class="text-xs text-slate-500">{{ $archived->employee_number }} · {{ $archived->job_title }}</p></div>
+                <form method="POST" action="{{ route('school-employees.restore', [$school, $archived->id]) }}">
+                    @csrf
+                    <button type="submit" class="rounded-xl border border-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-700">Restore employee</button>
+                </form>
+            </div>
+        @empty
+            <p class="text-sm text-slate-500">No archived employees.</p>
         @endforelse
     </div>
 </x-ui.card>
