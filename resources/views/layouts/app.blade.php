@@ -13,6 +13,14 @@
     $tenantBranding = $schoolContext instanceof \App\Models\School
         ? \App\Models\SaasBranding::where('school_id', $schoolContext->id)->first()
         : null;
+    $platformAppearance = \App\Models\SaasPlatformAppearance::query()->first();
+    $activeAppearance = $tenantBranding ?? $platformAppearance;
+    $appearancePrimary = $activeAppearance?->primary_color ?? '#4F46E5';
+    $appearanceFont = \App\Services\AppearanceSettings::fontStack($activeAppearance?->font_family ?? 'system');
+    $appearanceSize = (int) ($activeAppearance?->font_size ?? 16);
+    if (!in_array($appearanceSize, config('appearance.sizes'), true)) $appearanceSize = 16;
+    $appearanceDensity = in_array($activeAppearance?->density, config('appearance.densities'), true)
+        ? $activeAppearance->density : 'comfortable';
     $brandName = $platformContext ? 'SchoolApp Owner'
         : ($schoolContext instanceof \App\Models\School
             ? ($tenantBranding?->display_name ?? $schoolContext->name)
@@ -30,6 +38,8 @@
                 'url' => route('users.index'), 'active' => request()->routeIs('users.*')],
             ['label' => 'Organization administrators', 'icon' => 'users',
                 'url' => route('website-owner.users.index'), 'active' => request()->routeIs('website-owner.users.*')],
+            ['label' => 'Appearance & typography', 'icon' => 'palette',
+                'url' => route('website-owner.appearance.index'), 'active' => request()->routeIs('website-owner.appearance.*')],
             ['label' => 'Onboarding approvals', 'icon' => 'clipboard-check',
                 'url' => route('saas.onboarding.review'), 'active' => request()->routeIs('saas.onboarding.review')],
             ['label' => 'SaaS plans', 'icon' => 'layers',
@@ -224,7 +234,7 @@
     }
 @endphp
 <!doctype html>
-<html lang="en">
+<html lang="en" style="--app-primary: {{ $appearancePrimary }}; --app-font: {{ $appearanceFont }}; font-size: {{ $appearanceSize }}px;" data-density="{{ $appearanceDensity }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -240,7 +250,7 @@
     <aside id="schoolapp-navigation" class="schoolapp-sidebar" data-sidebar aria-label="Application sidebar">
         <div class="flex h-[76px] shrink-0 items-center justify-between border-b border-slate-200/70 px-5">
             <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-offset-4" title="SchoolApp home">
-                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-200" @if($tenantBranding) style="background-color: {{ $tenantBranding->primary_color }}" @endif><x-ui.icon name="school" size="size-5"/></span>
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-200"><x-ui.icon name="school" size="size-5"/></span>
                 <span class="schoolapp-sidebar-label min-w-0"><span class="block text-base font-extrabold tracking-tight">{{ $brandName }}</span><span class="block text-[11px] font-medium tracking-wide text-slate-500">{{ $brandCaption }}</span></span>
             </a>
             <button type="button" data-nav-toggle aria-controls="schoolapp-navigation" aria-expanded="false" aria-label="Close navigation" class="schoolapp-mobile-close inline-flex size-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"><x-ui.icon name="x" size="size-5"/></button>
