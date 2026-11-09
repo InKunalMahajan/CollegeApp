@@ -278,7 +278,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/setup/{module}/{record}', [AcademicSetupController::class, 'destroy'])->name('setup.destroy');
         Route::get('/modules', ModuleCatalogController::class)->name('modules.index');
         Route::get('/users', [UserManagementController::class, 'index'])->middleware('website.owner')->name('users.index');
-        Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
-        Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');
+        Route::get('/users/create', [UserManagementController::class, 'create'])->middleware('website.owner')->name('users.create');
+        Route::post('/users', [UserManagementController::class, 'store'])->middleware('website.owner')->name('users.store');
     });
 });
