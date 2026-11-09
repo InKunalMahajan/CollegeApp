@@ -4,6 +4,7 @@ use App\Http\Controllers\AcademicSetupController;
 use App\Http\Controllers\SchoolSecurityController;
 use App\Http\Controllers\SchoolPortalController;
 use App\Http\Controllers\SchoolDashboardController;
+use App\Http\Controllers\SchoolDepartmentController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
 use App\Http\Controllers\SchoolAcademicController;
 use App\Http\Controllers\SchoolAdmissionController;
@@ -44,6 +45,13 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
     Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
+    Route::prefix('schools/{school}/departments')->group(function () {
+        Route::get('/', [SchoolDepartmentController::class, 'index'])->name('school-departments.index');
+        Route::get('/{department}', [SchoolDepartmentController::class, 'show'])->name('school-departments.show');
+        Route::post('/', [SchoolDepartmentController::class, 'store'])->name('school-departments.store');
+        Route::post('/{department}/members', [SchoolDepartmentController::class, 'assign'])->name('school-departments.assign');
+        Route::delete('/{department}/members/{membership}', [SchoolDepartmentController::class, 'revoke'])->name('school-departments.revoke');
+    });
     // Explicit school membership is checked inside the read-only controller.
     Route::middleware('school.member:school_admin,auditor')->group(function () {
         Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->name('school-security.report');
