@@ -14,12 +14,14 @@ return new class extends Migration
             $table->date('joined_on')->nullable();
             $table->string('work_email', 255)->nullable();
             $table->index(['school_id', 'employment_status'], 'school_employees_status_idx');
+            $table->unique(['school_id', 'work_email'], 'school_employee_work_email_unique');
         });
     }
 
     public function down(): void
     {
         Schema::table('school_employees', function (Blueprint $table) {
+            $table->dropUnique('school_employee_work_email_unique');
             $table->dropIndex('school_employees_status_idx');
             $table->dropColumn(['employment_status', 'employment_type', 'joined_on', 'work_email']);
         });
