@@ -6,6 +6,7 @@ use App\Models\SaasBranding;
 use App\Models\SaasDomain;
 use App\Models\School;
 use App\Services\SchoolAuditTrail;
+use App\Services\AppearanceSettings;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
