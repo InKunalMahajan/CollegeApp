@@ -9,7 +9,7 @@
 @forelse($charges as $charge)
 @php($paid = (int)($charge->payments_sum_amount_paise ?? 0))
 @php($balance = max(0,$charge->amount_paise-$paid))
-<div class="rounded-xl border border-slate-200 bg-white p-5">
+<div class="schoolapp-panel rounded-xl border border-slate-200 bg-white p-5">
 <h3 class="font-semibold">{{ $charge->enrollment->student->first_name }} {{ $charge->enrollment->student->last_name }} — {{ $charge->structure->name }}</h3>
 <p class="mt-1 text-sm text-slate-600">Charged ₹{{ number_format($charge->amount_paise/100,2) }} · Outstanding ₹{{ number_format($balance/100,2) }}</p>
 @if($balance>0)<form method="POST" action="{{ route('school-finance.payment',[$school,$charge]) }}" class="mt-3 grid gap-3 sm:grid-cols-4">@csrf
