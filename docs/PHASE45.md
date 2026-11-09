@@ -1,0 +1,3 @@
+# Phase 45 — SaaS tenant foundation
+
+Each `schools` row is an existing organization and maps one-to-one to an optional `saas_tenants` record. This additive migration does not migrate, delete or cross-assign TEACH student records. Tenant access must still go through existing `SchoolAccess` and `CampusAccess`, not a guessed ID, global user role, or platform ownership. Missing tenant rows are treated as active for backwards compatibility; new onboarded schools receive a row. Suspension is a state marker for future policy enforcement, **not** a global route block in this phase. No cross-tenant querying for organizations or campuses through tenant UI is authorized. Run `php artisan test --filter=Phase45SaasTenantTest` and the full CI suite.
