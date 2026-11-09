@@ -37,7 +37,7 @@
 <x-ui.card>
 <h3 class="text-lg font-semibold">{{ $assignment->campus->name }}</h3>
 <p class="mt-1 text-sm text-slate-600">Organization: {{ $assignment->campus->school->name }}</p>
-<p class="mt-1 text-xs text-slate-500">Role: Campus administrator · {{ $assignment->campus->city ?: 'Campus' }} only</p>
+<p class="mt-1 text-xs text-slate-500">Role: {{ str_replace('_',' ',ucwords($assignment->role,'_')) }} · {{ $assignment->campus->city ?: 'Campus' }} only</p>
 <a href="{{ route('campus-workspace.index', [$assignment->campus->school, $assignment->campus]) }}" class="mt-4 inline-flex rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Open campus workspace</a>
 </x-ui.card>
 @endforeach
