@@ -70,6 +70,68 @@ class SchoolCampusController extends Controller
         return to_route('school-campuses.index', $school)->with('success', 'Campus created.');
     }
 
+    public function update(
+        Request $request, School $school, Campus $campus, SchoolAuditTrail $audit
+    ): RedirectResponse {
+        $this->owned($school, $campus);
+        $this->requireOrganizationAdmin($request, $school);
+        $request->merge(['code' => strtoupper(trim((string) $request->input('code')))]);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:30', 'regex:/^[A-Z0-9_-]+$/',
+                Rule::unique('campuses', 'code')->where('school_id', $school->id)
+                    ->ignore($campus->id)],
+            'city' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        DB::transaction(function () use ($request, $school, $campus, $data, $audit) {
+            $record = Campus::query()->where('school_id', $school->id)
+                ->whereKey($campus->id)->lockForUpdate()->firstOrFail();
+            $record->fill($data);
+            $fields = array_keys($record->getDirty());
+            if ($fields) {
+                $record->save();
+                $audit->record($school->id, $request->user()->id, 'campus.updated',
+                    'campus', $record->id, ['fields' => $fields]);
+            }
+        });
+
+        return to_route('school-campuses.index', $school)->with('success', 'Campus updated.');
+    }
+
+    public function destroy(
+        Request $request, School $school, Campus $campus, SchoolAuditTrail $audit
+    ): RedirectResponse {
+        $this->owned($school, $campus);
+        $this->requireOrganizationAdmin($request, $school);
+
+        DB::transaction(function () use ($request, $school, $campus, $audit) {
+            $record = Campus::query()->where('school_id', $school->id)
+                ->whereKey($campus->id)->lockForUpdate()->firstOrFail();
+
+            // SchoolApp campus records can be referenced by historical
+            // academics, staff and access links; deletion is for empty
+            // campuses only, never as a bulk record-removal operation.
+            $references = CampusMembership::where('campus_id', $record->id)->exists()
+                || SchoolEmployee::withTrashed()->where('campus_id', $record->id)->exists()
+                || Student::where('campus_id', $record->id)->exists()
+                || DB::table('class_sections')->where('campus_id', $record->id)->exists()
+                || DB::table('teacher_profiles')->where('campus_id', $record->id)->exists();
+            if ($references) {
+                throw ValidationException::withMessages([
+                    'campus' => 'This campus has members, employees, students, classes or teachers. '
+                        .'Remove or transfer those references through approved workflows first.',
+                ]);
+            }
+
+            $audit->record($school->id, $request->user()->id, 'campus.deleted',
+                'campus', $record->id, ['code' => $record->code]);
+            $record->delete();
+        });
+
+        return to_route('school-campuses.index', $school)->with('success', 'Empty campus deleted.');
+    }
+
     public function grant(Request $request, School $school, Campus $campus, SchoolAuditTrail $audit): RedirectResponse
     {
         $this->owned($school, $campus);
