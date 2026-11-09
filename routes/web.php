@@ -6,6 +6,8 @@ use App\Http\Controllers\SchoolPortalController;
 use App\Http\Controllers\SchoolDashboardController;
 use App\Http\Controllers\SchoolDepartmentController;
 use App\Http\Controllers\SchoolEmployeeController;
+use App\Http\Controllers\SchoolCampusController;
+use App\Http\Controllers\CampusWorkspaceController;
 use App\Http\Controllers\SchoolEmployeeProfileController;
 use App\Http\Controllers\SchoolPermissionMatrixController;
 use App\Http\Controllers\SchoolFinanceLibraryController;
@@ -48,6 +50,41 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
     Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
+    // School is the parent organization (e.g. TEACH). Only its explicitly
+    // authorized organization administrator can grant campus administration.
+    Route::prefix('schools/{school}/campuses')
+        ->middleware('school.can:school.administration.manage')->group(function () {
+            Route::get('/', [SchoolCampusController::class, 'index'])->name('school-campuses.index');
+            Route::post('/', [SchoolCampusController::class, 'store'])->name('school-campuses.store');
+            Route::put('/{campus}', [SchoolCampusController::class, 'update'])->name('school-campuses.update');
+            Route::delete('/{campus}', [SchoolCampusController::class, 'destroy'])->name('school-campuses.destroy');
+            Route::post('/{campus}/admins', [SchoolCampusController::class, 'grant'])->name('school-campuses.grant');
+            Route::delete('/{campus}/admins/{membership}', [SchoolCampusController::class, 'revoke'])->name('school-campuses.revoke');
+            Route::post('/{campus}/employees/{employee}/assign', [SchoolCampusController::class, 'assignEmployee'])->name('school-campuses.assign-employee');
+            Route::post('/{campus}/students/{student}/assign', [SchoolCampusController::class, 'assignStudent'])->name('school-campuses.assign-student');
+        });
+
+    // Campus administrators never receive the school_admin role. Campus
+    // middleware checks BOTH the campus's organization and their assignment.
+    Route::prefix('schools/{school}/campuses/{campus}')->group(function () {
+        Route::get('/workspace', [CampusWorkspaceController::class, 'index'])
+            ->middleware('campus.can:campus.dashboard.view')->name('campus-workspace.index');
+        Route::post('/employees', [CampusWorkspaceController::class, 'createEmployee'])
+            ->middleware('campus.can:campus.employees.manage')->name('campus.employees.store');
+        Route::put('/employees/{employee}', [CampusWorkspaceController::class, 'updateEmployee'])
+            ->middleware('campus.can:campus.employees.manage')->name('campus.employees.update');
+        Route::delete('/employees/{employee}', [CampusWorkspaceController::class, 'archiveEmployee'])
+            ->middleware('campus.can:campus.employees.manage')->name('campus.employees.archive');
+        Route::post('/employees/{employee}/restore', [CampusWorkspaceController::class, 'restoreEmployee'])
+            ->middleware('campus.can:campus.employees.manage')->name('campus.employees.restore');
+        Route::post('/students', [CampusWorkspaceController::class, 'createStudent'])
+            ->middleware('campus.can:campus.students.manage')->name('campus.students.store');
+        Route::put('/students/{student}', [CampusWorkspaceController::class, 'updateStudent'])
+            ->middleware('campus.can:campus.students.manage')->name('campus.students.update');
+        Route::delete('/students/{student}', [CampusWorkspaceController::class, 'deactivateStudent'])
+            ->middleware('campus.can:campus.students.manage')->name('campus.students.deactivate');
+    });
+
     Route::get('/schools/{school}/permissions', SchoolPermissionMatrixController::class)
         ->middleware('school.can:school.security.view')
         ->name('school-permissions.index');

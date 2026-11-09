@@ -23,7 +23,7 @@ class SchoolEmployee extends Model
     protected $fillable = [
         'school_id', 'employee_number', 'display_name', 'job_title',
         'department_label', 'location', 'school_department_id', 'manager_id',
-        'employment_status', 'employment_type', 'joined_on', 'work_email',
+        'employment_status', 'employment_type', 'joined_on', 'work_email', 'campus_id',
     ];
 
     public function school(): BelongsTo

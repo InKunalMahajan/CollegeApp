@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Student extends Model
 {
-    protected $fillable = ['school_id', 'admission_number', 'first_name', 'last_name', 'email', 'admission_date', 'course_id', 'status'];
+    protected $fillable = ['school_id', 'campus_id', 'admission_number', 'first_name', 'last_name', 'email', 'admission_date', 'course_id', 'status'];
 
     protected function casts(): array { return ['admission_date' => 'date']; }
 
