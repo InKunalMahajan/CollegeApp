@@ -165,7 +165,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{department}/members/{membership}', [SchoolDepartmentController::class, 'revoke'])->middleware('school.can:school.departments.manage')->name('school-departments.revoke');
     });
     // Explicit school membership is checked inside the read-only controller.
-    Route::middleware('school.member:school_admin,auditor')->group(function () {
+    Route::middleware('school.member:school_admin,auditor,organization_viewer')->group(function () {
         Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->middleware('school.can:school.security.view')->name('school-security.report');
         Route::get('/schools/{school}/portal', [SchoolPortalController::class, 'index'])->middleware('school.can:school.portal.view')->name('school-portal.index');
         Route::get('/schools/{school}/dashboard', [SchoolDashboardController::class, 'index'])->middleware('school.can:school.dashboard.view')->name('school-dashboard.index');
