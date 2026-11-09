@@ -47,58 +47,58 @@ Route::middleware('auth')->group(function () {
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('legacy.global')->name('announcements.index');
     Route::get('/my-schools', [MySchoolsController::class, 'index'])->name('my-schools.index');
     Route::prefix('schools/{school}/employees')->group(function () {
-        Route::get('/', [SchoolEmployeeController::class, 'index'])->name('school-employees.index');
-        Route::post('/', [SchoolEmployeeController::class, 'store'])->name('school-employees.store');
-        Route::post('/import', [SchoolEmployeeController::class, 'import'])->name('school-employees.import');
-        Route::put('/{employee}', [SchoolEmployeeController::class, 'update'])->name('school-employees.update');
+        Route::get('/', [SchoolEmployeeController::class, 'index'])->middleware('school.can:school.employees.view')->name('school-employees.index');
+        Route::post('/', [SchoolEmployeeController::class, 'store'])->middleware('school.can:school.employees.manage')->name('school-employees.store');
+        Route::post('/import', [SchoolEmployeeController::class, 'import'])->middleware('school.can:school.employees.import')->name('school-employees.import');
+        Route::put('/{employee}', [SchoolEmployeeController::class, 'update'])->middleware('school.can:school.employees.manage')->name('school-employees.update');
     });
 
     Route::prefix('schools/{school}/departments')->group(function () {
-        Route::get('/', [SchoolDepartmentController::class, 'index'])->name('school-departments.index');
-        Route::get('/{department}', [SchoolDepartmentController::class, 'show'])->name('school-departments.show');
-        Route::post('/', [SchoolDepartmentController::class, 'store'])->name('school-departments.store');
-        Route::post('/{department}/members', [SchoolDepartmentController::class, 'assign'])->name('school-departments.assign');
-        Route::delete('/{department}/members/{membership}', [SchoolDepartmentController::class, 'revoke'])->name('school-departments.revoke');
+        Route::get('/', [SchoolDepartmentController::class, 'index'])->middleware('school.can:school.departments.view')->name('school-departments.index');
+        Route::get('/{department}', [SchoolDepartmentController::class, 'show'])->middleware('department.can:department.dashboard.view')->name('school-departments.show');
+        Route::post('/', [SchoolDepartmentController::class, 'store'])->middleware('school.can:school.departments.manage')->name('school-departments.store');
+        Route::post('/{department}/members', [SchoolDepartmentController::class, 'assign'])->middleware('school.can:school.departments.manage')->name('school-departments.assign');
+        Route::delete('/{department}/members/{membership}', [SchoolDepartmentController::class, 'revoke'])->middleware('school.can:school.departments.manage')->name('school-departments.revoke');
     });
     // Explicit school membership is checked inside the read-only controller.
     Route::middleware('school.member:school_admin,auditor')->group(function () {
-        Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->name('school-security.report');
-        Route::get('/schools/{school}/portal', [SchoolPortalController::class, 'index'])->name('school-portal.index');
-        Route::get('/schools/{school}/dashboard', [SchoolDashboardController::class, 'index'])->name('school-dashboard.index');
-        Route::get('/schools/{school}/dashboard/export', [SchoolDashboardController::class, 'export'])->name('school-dashboard.export');
+        Route::get('/schools/{school}/security-report', [SchoolSecurityController::class, 'report'])->middleware('school.can:school.security.view')->name('school-security.report');
+        Route::get('/schools/{school}/portal', [SchoolPortalController::class, 'index'])->middleware('school.can:school.portal.view')->name('school-portal.index');
+        Route::get('/schools/{school}/dashboard', [SchoolDashboardController::class, 'index'])->middleware('school.can:school.dashboard.view')->name('school-dashboard.index');
+        Route::get('/schools/{school}/dashboard/export', [SchoolDashboardController::class, 'export'])->middleware('school.can:school.dashboard.view')->name('school-dashboard.export');
     });
 
     Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
-        Route::get('/fees', [SchoolFinanceLibraryController::class, 'fees'])->name('school-finance.fees');
-        Route::post('/fees/charges/{charge}/payments', [SchoolFinanceLibraryController::class, 'payment'])->name('school-finance.payment');
-        Route::get('/library', [SchoolFinanceLibraryController::class, 'library'])->name('school-finance.library');
-        Route::post('/library/loans', [SchoolFinanceLibraryController::class, 'issue'])->name('school-finance.issue');
-        Route::post('/library/loans/{loan}/return', [SchoolFinanceLibraryController::class, 'returnBook'])->name('school-finance.return');
+        Route::get('/fees', [SchoolFinanceLibraryController::class, 'fees'])->middleware('school.can:school.finance.view')->name('school-finance.fees');
+        Route::post('/fees/charges/{charge}/payments', [SchoolFinanceLibraryController::class, 'payment'])->middleware('school.can:school.finance.manage')->name('school-finance.payment');
+        Route::get('/library', [SchoolFinanceLibraryController::class, 'library'])->middleware('school.can:school.library.view')->name('school-finance.library');
+        Route::post('/library/loans', [SchoolFinanceLibraryController::class, 'issue'])->middleware('school.can:school.library.manage')->name('school-finance.issue');
+        Route::post('/library/loans/{loan}/return', [SchoolFinanceLibraryController::class, 'returnBook'])->middleware('school.can:school.library.manage')->name('school-finance.return');
     });
 
     Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
-        Route::get('/academics', [SchoolAcademicController::class, 'index'])->name('school-academics.index');
-        Route::post('/students', [SchoolAdmissionController::class, 'store'])->name('school-admissions.store');
-        Route::get('/students', [SchoolStudentController::class, 'index'])->name('school-students.index');
-        Route::get('/students/{student}', [SchoolStudentController::class, 'show'])->name('school-students.show');
-        Route::get('/students/{student}/edit', [SchoolStudentController::class, 'edit'])->name('school-students.edit');
-        Route::put('/students/{student}', [SchoolStudentController::class, 'update'])->name('school-students.update');
-        Route::post('/academics/enrollments', [SchoolAcademicController::class, 'enroll'])->name('school-academics.enroll');
-        Route::post('/academics/teacher-assignments', [SchoolAcademicController::class, 'assignTeacher'])->name('school-academics.teaching');
-        Route::post('/academics/attendance', [SchoolAcademicController::class, 'recordAttendance'])->name('school-academics.attendance');
-        Route::post('/academics/timetable', [SchoolAcademicController::class, 'storeTimetable'])->name('school-academics.timetable');
-        Route::post('/academics/exams', [SchoolAcademicController::class, 'storeExam'])->name('school-academics.exams');
-        Route::post('/academics/exams/{exam}/results', [SchoolAcademicController::class, 'recordResult'])->name('school-academics.results');
+        Route::get('/academics', [SchoolAcademicController::class, 'index'])->middleware('school.can:school.academics.view')->name('school-academics.index');
+        Route::post('/students', [SchoolAdmissionController::class, 'store'])->middleware('school.can:school.students.manage')->name('school-admissions.store');
+        Route::get('/students', [SchoolStudentController::class, 'index'])->middleware('school.can:school.students.view')->name('school-students.index');
+        Route::get('/students/{student}', [SchoolStudentController::class, 'show'])->middleware('school.can:school.students.view')->name('school-students.show');
+        Route::get('/students/{student}/edit', [SchoolStudentController::class, 'edit'])->middleware('school.can:school.students.manage')->name('school-students.edit');
+        Route::put('/students/{student}', [SchoolStudentController::class, 'update'])->middleware('school.can:school.students.manage')->name('school-students.update');
+        Route::post('/academics/enrollments', [SchoolAcademicController::class, 'enroll'])->middleware('school.can:school.academics.manage')->name('school-academics.enroll');
+        Route::post('/academics/teacher-assignments', [SchoolAcademicController::class, 'assignTeacher'])->middleware('school.can:school.academics.manage')->name('school-academics.teaching');
+        Route::post('/academics/attendance', [SchoolAcademicController::class, 'recordAttendance'])->middleware('school.can:school.academics.manage')->name('school-academics.attendance');
+        Route::post('/academics/timetable', [SchoolAcademicController::class, 'storeTimetable'])->middleware('school.can:school.academics.manage')->name('school-academics.timetable');
+        Route::post('/academics/exams', [SchoolAcademicController::class, 'storeExam'])->middleware('school.can:school.academics.manage')->name('school-academics.exams');
+        Route::post('/academics/exams/{exam}/results', [SchoolAcademicController::class, 'recordResult'])->middleware('school.can:school.academics.manage')->name('school-academics.results');
     });
 
     Route::prefix('schools/{school}')->middleware('school.member:school_admin')->group(function () {
-        Route::get('/administration', [SchoolAdministrationController::class, 'index'])->name('school-admin.index');
-        Route::get('/student-accounts', [SchoolStudentAccountController::class, 'index'])->name('school-student-accounts.index');
-        Route::post('/student-accounts', [SchoolStudentAccountController::class, 'store'])->name('school-student-accounts.store');
-        Route::delete('/student-accounts/{account}', [SchoolStudentAccountController::class, 'destroy'])->name('school-student-accounts.destroy');
-        Route::post('/administration/auditors', [SchoolAdministrationController::class, 'addAuditor'])->name('school-admin.auditors.store');
-        Route::delete('/administration/auditors/{membership}', [SchoolAdministrationController::class, 'removeAuditor'])->name('school-admin.auditors.destroy');
-        Route::post('/administration/legacy-students/claim', [SchoolAdministrationController::class, 'claimLegacyStudent'])->name('school-admin.students.claim');
+        Route::get('/administration', [SchoolAdministrationController::class, 'index'])->middleware('school.can:school.administration.manage')->name('school-admin.index');
+        Route::get('/student-accounts', [SchoolStudentAccountController::class, 'index'])->middleware('school.can:school.accounts.manage')->name('school-student-accounts.index');
+        Route::post('/student-accounts', [SchoolStudentAccountController::class, 'store'])->middleware('school.can:school.accounts.manage')->name('school-student-accounts.store');
+        Route::delete('/student-accounts/{account}', [SchoolStudentAccountController::class, 'destroy'])->middleware('school.can:school.accounts.manage')->name('school-student-accounts.destroy');
+        Route::post('/administration/auditors', [SchoolAdministrationController::class, 'addAuditor'])->middleware('school.can:school.administration.manage')->name('school-admin.auditors.store');
+        Route::delete('/administration/auditors/{membership}', [SchoolAdministrationController::class, 'removeAuditor'])->middleware('school.can:school.administration.manage')->name('school-admin.auditors.destroy');
+        Route::post('/administration/legacy-students/claim', [SchoolAdministrationController::class, 'claimLegacyStudent'])->middleware('school.can:school.administration.manage')->name('school-admin.students.claim');
     });
 
     Route::middleware('role:teacher')->group(function () {
