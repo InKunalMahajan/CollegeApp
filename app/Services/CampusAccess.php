@@ -11,6 +11,7 @@ class CampusAccess
 {
     private const ABILITIES = [
         'campus.dashboard.view',
+        'campus.users.manage',
         'campus.operations.view',
         'campus.enrollments.view',
         'campus.enrollments.manage',
