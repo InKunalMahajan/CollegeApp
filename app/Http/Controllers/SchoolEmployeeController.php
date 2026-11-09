@@ -7,6 +7,7 @@ use App\Models\SchoolDepartment;
 use App\Models\SchoolDepartmentMembership;
 use App\Models\SchoolEmployee;
 use App\Models\SchoolMembership;
+use App\Services\SchoolAccess;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +27,9 @@ class SchoolEmployeeController extends Controller
 
     private function ensureAdmin(Request $request, School $school): void
     {
-        abort_unless($this->schoolRole($request, $school) === 'school_admin', 403);
+        abort_unless(app(SchoolAccess::class)->can(
+            $request->user(), $school, 'school.employees.manage'
+        ), 403);
     }
 
     private function allowedDepartmentIds(Request $request, School $school, string $schoolRole): array
@@ -70,7 +73,9 @@ class SchoolEmployeeController extends Controller
     public function index(Request $request, School $school): View
     {
         $role = $this->schoolRole($request, $school);
-        abort_unless(in_array($role, ['school_admin', 'auditor', 'department_member'], true), 403);
+        abort_unless(app(SchoolAccess::class)->can(
+            $request->user(), $school, 'school.employees.view'
+        ), 403);
 
         $query = SchoolEmployee::query()->where('school_id', $school->id);
         if ($role === 'department_member') {
@@ -158,7 +163,9 @@ class SchoolEmployeeController extends Controller
 
     public function import(Request $request, School $school): RedirectResponse
     {
-        $this->ensureAdmin($request, $school);
+        abort_unless(app(SchoolAccess::class)->can(
+            $request->user(), $school, 'school.employees.import'
+        ), 403);
         $data = $request->validate([
             'employee_csv' => ['required', 'file', 'max:2048'],
         ]);
