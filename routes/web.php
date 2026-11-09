@@ -16,6 +16,7 @@ use App\Http\Controllers\CampusExamController;
 use App\Http\Controllers\CampusFinanceLibraryController;
 use App\Http\Controllers\WebsiteOwnerUserController;
 use App\Http\Controllers\WebsiteOwnerDashboardController;
+use App\Http\Controllers\WebsiteAppearanceController;
 use App\Http\Controllers\SaasOnboardingController;
 use App\Http\Controllers\SaasPlanController;
 use App\Http\Controllers\SaasInvoiceController;
@@ -82,6 +83,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/users/create', [UserManagementController::class, 'create'])->middleware('website.owner')->name('users.create');
     Route::post('/users', [UserManagementController::class, 'store'])->middleware('website.owner')->name('users.store');
     Route::prefix('website-owner')->middleware('website.owner')->group(function () {
+        Route::get('/appearance', [WebsiteAppearanceController::class, 'index'])->name('website-owner.appearance.index');
+        Route::put('/appearance', [WebsiteAppearanceController::class, 'update'])->name('website-owner.appearance.update');
         Route::get('/dashboard', [WebsiteOwnerDashboardController::class, 'index'])->name('website-owner.dashboard');
         Route::get('/users', [WebsiteOwnerUserController::class, 'index'])->name('website-owner.users.index');
         Route::post('/users', [WebsiteOwnerUserController::class, 'store'])->name('website-owner.users.store');
