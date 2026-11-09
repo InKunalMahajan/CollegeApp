@@ -2,22 +2,89 @@
     $person = auth()->user();
     $legacy = config('school_security.legacy_global_routes_enabled', false);
     $role = $person->role;
+    $platformContext = request()->routeIs('website-owner.*', 'users.*');
+    $schoolContext = request()->route('school');
+    $campusContext = request()->route('campus');
+    $isOwner = \App\Models\WebsiteOwner::where('user_id', $person->id)->exists();
+    $organizationContext = $schoolContext instanceof \App\Models\School
+        && !($campusContext instanceof \App\Models\Campus);
+    $campusScopedContext = $schoolContext instanceof \App\Models\School
+        && $campusContext instanceof \App\Models\Campus;
+    $brandName = $platformContext ? 'SchoolApp Owner'
+        : ($schoolContext instanceof \App\Models\School ? $schoolContext->name : 'SchoolApp');
+    $brandCaption = $platformContext ? 'Platform administration'
+        : ($campusScopedContext ? $campusContext->name.' campus'
+        : ($organizationContext ? 'Organization workspace' : 'Management workspace'));
     $nav = [];
-    $nav[] = ['title' => 'Workspace', 'icon' => 'layout-dashboard', 'items' => [
-        ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'url' => route('dashboard'), 'active' => request()->routeIs('dashboard')],
-        ['label' => 'My Schools', 'icon' => 'school', 'url' => route('my-schools.index'), 'active' => request()->routeIs('my-schools.*')],
-    ]];
 
-    if (\App\Models\WebsiteOwner::where('user_id', $person->id)->exists()) {
+    if ($platformContext) {
+        $nav[] = ['title' => 'Website Owner', 'icon' => 'shield-check', 'items' => [
+            ['label' => 'Owner dashboard', 'icon' => 'layout-dashboard',
+                'url' => route('website-owner.dashboard'), 'active' => request()->routeIs('website-owner.dashboard')],
+            ['label' => 'User accounts & roles', 'icon' => 'user-cog',
+                'url' => route('users.index'), 'active' => request()->routeIs('users.*')],
+            ['label' => 'Organization administrators', 'icon' => 'users',
+                'url' => route('website-owner.users.index'), 'active' => request()->routeIs('website-owner.users.*')],
+            ['label' => 'My workspaces', 'icon' => 'school',
+                'url' => route('my-schools.index'), 'active' => false],
+        ]];
+    } elseif ($campusScopedContext) {
+        $campusAccess = app(\App\Services\CampusAccess::class);
+        $campusItems = [
+            ['label' => 'Campus dashboard', 'icon' => 'layout-dashboard',
+                'url' => route('campus-workspace.index', [$schoolContext, $campusContext]),
+                'active' => request()->routeIs('campus-workspace.*')],
+            ['label' => 'Operations', 'icon' => 'layout-grid',
+                'url' => route('campus.operations.index', [$schoolContext, $campusContext]),
+                'active' => request()->routeIs('campus.operations.*')],
+        ];
+        if ($campusAccess->can($person, $schoolContext, $campusContext, 'campus.users.manage')) {
+            $campusItems[] = ['label' => 'Campus users', 'icon' => 'user-cog',
+                'url' => route('campus-users.index', [$schoolContext, $campusContext]),
+                'active' => request()->routeIs('campus-users.*')];
+        }
+        $campusItems[] = ['label' => 'Switch workspace', 'icon' => 'school',
+            'url' => route('my-schools.index'), 'active' => false];
+        $nav[] = ['title' => $campusContext->name.' Campus', 'icon' => 'school', 'items' => $campusItems];
+    } elseif ($organizationContext) {
+        $schoolAccess = app(\App\Services\SchoolAccess::class);
+        $organizationItems = [
+            ['label' => 'Organization dashboard', 'icon' => 'layout-dashboard',
+                'url' => route('school-dashboard.index', $schoolContext),
+                'active' => request()->routeIs('school-dashboard.*')],
+            ['label' => 'Organization portal', 'icon' => 'school',
+                'url' => route('school-portal.index', $schoolContext),
+                'active' => request()->routeIs('school-portal.*')],
+        ];
+        if ($schoolAccess->can($person, $schoolContext, 'school.users.manage')) {
+            $organizationItems[] = ['label' => 'Organization users', 'icon' => 'user-cog',
+                'url' => route('organization-users.index', $schoolContext),
+                'active' => request()->routeIs('organization-users.*')];
+            $organizationItems[] = ['label' => 'Manage campuses', 'icon' => 'building-2',
+                'url' => route('school-campuses.index', $schoolContext),
+                'active' => request()->routeIs('school-campuses.*')];
+        }
+        $organizationItems[] = ['label' => 'Switch workspace', 'icon' => 'school',
+            'url' => route('my-schools.index'), 'active' => false];
+        $nav[] = ['title' => $schoolContext->name.' Organization', 'icon' => 'school',
+            'items' => $organizationItems];
+    } else {
+        $nav[] = ['title' => 'Workspace', 'icon' => 'layout-dashboard', 'items' => [
+            ['label' => 'Dashboard', 'icon' => 'layout-dashboard',
+                'url' => route('dashboard'), 'active' => request()->routeIs('dashboard')],
+            ['label' => 'My Schools', 'icon' => 'school',
+                'url' => route('my-schools.index'), 'active' => request()->routeIs('my-schools.*')],
+        ]];
+    }
+
+    if ($isOwner && !$platformContext) {
         $nav[] = ['title' => 'Website Owner', 'icon' => 'shield-check', 'items' => [[
-            'label' => 'Platform user accounts', 'icon' => 'user-cog',
-            'url' => route('website-owner.users.index'),
-            'active' => request()->routeIs('website-owner.*'),
+            'label' => 'Owner dashboard', 'icon' => 'layout-dashboard',
+            'url' => route('website-owner.dashboard'), 'active' => false,
         ]]];
     }
 
-    $schoolContext = request()->route('school');
-    if ($schoolContext instanceof \App\Models\School) {
+    if (!$platformContext && $organizationContext) {
         $access = app(\App\Services\SchoolAccess::class);
         $contextRole = \App\Models\SchoolMembership::query()
             ->where('school_id', $schoolContext->id)
@@ -85,13 +152,13 @@
     }
 
     $learning = [];
-    if ($legacy) {
+    if (!$platformContext && !$organizationContext && !$campusScopedContext && $legacy) {
         $learning[] = ['label' => 'Announcements', 'icon' => 'megaphone', 'url' => route('announcements.index'), 'active' => request()->routeIs('announcements.*')];
     }
-    if ($role === 'student') {
+    if (!$platformContext && !$organizationContext && !$campusScopedContext && $role === 'student') {
         $learning[] = ['label' => 'My assignments', 'icon' => 'clipboard-list', 'url' => route('assignments.student'), 'active' => request()->routeIs('assignments.student')];
     }
-    if ($role === 'teacher') {
+    if (!$platformContext && !$organizationContext && !$campusScopedContext && $role === 'teacher') {
         foreach ([
             ['My assignments', 'clipboard-list', 'assignments.teacher'],
             ['My lesson progress', 'book-open', 'curriculum.mine'],
@@ -105,13 +172,13 @@
         $nav[] = ['title' => 'Learning & teaching', 'icon' => 'book-open', 'items' => $learning];
     }
 
-    if ($person->isStaff() && $legacy) {
+    if (!$platformContext && !$organizationContext && !$campusScopedContext && $person->isStaff() && $legacy) {
         $nav[] = ['title' => 'Student records', 'icon' => 'users', 'items' => [
             ['label' => 'Students', 'icon' => 'users', 'url' => route('students.index'), 'active' => request()->routeIs('students.*')],
         ]];
     }
 
-    if ($role === 'admin' && $legacy) {
+    if (!$platformContext && !$organizationContext && !$campusScopedContext && $role === 'admin' && $legacy) {
         $administration = [];
         foreach ([
             ['Reports & Analytics', 'chart-column', 'reports.index', 'reports.*'],
@@ -156,7 +223,7 @@
         <div class="flex h-[76px] shrink-0 items-center justify-between border-b border-slate-200/70 px-5">
             <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-offset-4" title="SchoolApp home">
                 <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-200"><x-ui.icon name="school" size="size-5"/></span>
-                <span class="schoolapp-sidebar-label min-w-0"><span class="block text-base font-extrabold tracking-tight">SchoolApp</span><span class="block text-[11px] font-medium tracking-wide text-slate-500">Management workspace</span></span>
+                <span class="schoolapp-sidebar-label min-w-0"><span class="block text-base font-extrabold tracking-tight">{{ $brandName }}</span><span class="block text-[11px] font-medium tracking-wide text-slate-500">{{ $brandCaption }}</span></span>
             </a>
             <button type="button" data-nav-toggle aria-controls="schoolapp-navigation" aria-expanded="false" aria-label="Close navigation" class="schoolapp-mobile-close inline-flex size-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden"><x-ui.icon name="x" size="size-5"/></button>
         </div>
